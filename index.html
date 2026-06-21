@@ -120,9 +120,21 @@
 
       <!-- DASHBOARD -->
       <div class="view active" id="view-dashboard">
-        <div class="view-header">
-          <div class="view-title">Dashboard</div>
-          <div class="view-sub">Overview of your outreach campaigns</div>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding-bottom:12px">
+          <div>
+            <div class="view-title">Dashboard</div>
+            <div class="view-sub">Overview of your outreach campaigns</div>
+          </div>
+          <div class="dashboard-filters">
+            <select class="filter-select" id="dash-filter-campaign" onchange="loadDashboard()">
+              <option value="all">📁 All Campaigns</option>
+            </select>
+            <select class="filter-select" id="dash-filter-date" onchange="loadDashboard()">
+              <option value="all">📅 All Time</option>
+              <option value="today">☀️ Today</option>
+              <option value="past">⏳ Past History</option>
+            </select>
+          </div>
         </div>
         <div class="view-body">
           <div class="stats-grid" id="stats-grid">
