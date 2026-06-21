@@ -391,3 +391,194 @@ tbody tr:hover td{background:var(--bg-surface-2)}
   overflow:hidden;
 }
 
+/* ======= FADE IN ANIMATION ======= */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in-el {
+  animation: fadeIn 0.22s ease-out forwards;
+}
+
+/* ======= ACTIVITY CAMPAIGN PILL ======= */
+.activity-campaign-tag {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-subtle);
+  border: 1px solid var(--accent-border);
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  margin-left: 6px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* ======= CALLER PROGRESS METRICS ======= */
+.caller-progress-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  transition: background 150ms;
+}
+.caller-progress-item:hover {
+  background: var(--bg-surface-2);
+}
+.caller-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.caller-progress-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.caller-progress-campaign {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-surface-3);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.caller-progress-stats {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 3px;
+}
+.caller-progress-meta {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ======= DASHBOARD FILTERS ======= */
+.dashboard-filters {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+@media (max-width: 767px) {
+  .dashboard-filters {
+    width: 100%;
+    margin-top: 8px;
+  }
+  .dashboard-filters .filter-select {
+    flex: 1;
+  }
+}
+
+/* ======= CPANEL REDESIGN ======= */
+.cpanel-tabs-bar {
+  display: flex;
+  background: var(--bg-surface-2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+  gap: 4px;
+}
+.cpanel-tab-btn {
+  background: none;
+  border: none;
+  outline: none;
+  padding: 12px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 150ms;
+}
+.cpanel-tab-btn:hover {
+  color: var(--text-primary);
+}
+.cpanel-tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.cpanel-pane {
+  display: none;
+  animation: fadeIn 0.2s ease-out forwards;
+}
+.cpanel-pane.active {
+  display: block;
+}
+.cpanel-pane.active#cppane-pitch {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Campaign Stats Grid (Drawer) */
+.cpanel-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+.cpanel-stat-card {
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border);
+  padding: 12px;
+  border-radius: var(--radius-sm);
+}
+.cpanel-stat-label {
+  font-size: 9.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: .02em;
+}
+.cpanel-stat-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 4px;
+}
+
+/* Plain Text Modern Editor for Campaign Pitch Guide */
+.cpanel-pitch-display {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 8px 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  outline: none;
+}
+.cpanel-pitch-display[contenteditable="true"] {
+  border: none;
+}
+.cpanel-pitch-display[contenteditable="true"]:hover {
+  border: none;
+}
+.cpanel-pitch-display[contenteditable="true"]:focus {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+.cpanel-pitch-display:empty::before {
+  content: attr(placeholder);
+  color: var(--text-muted);
+  font-style: italic;
+  pointer-events: none;
+}
+
+

@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link rel="stylesheet" href="assets/style.css?v=8"/>
+  <link rel="stylesheet" href="assets/style.css?v=13"/>
 </head>
 <body>
 
@@ -146,9 +146,9 @@
               </div>
               <div id="activity-pagination"></div>
             </div>
-            <div class="table-wrapper admin-only" style="min-height:200px">
+            <div class="table-wrapper" id="dash-right-panel" style="min-height:200px">
               <div style="padding:12px 16px;border-bottom:1px solid var(--border)">
-                <span style="font-size:13px;font-weight:700;color:var(--text-primary)">Caller Progress</span>
+                <span style="font-size:13px;font-weight:700;color:var(--text-primary)" id="dash-right-panel-title">Caller Progress</span>
               </div>
               <div id="caller-progress" style="padding:0">
                 <div class="skel-row" style="padding:10px 12px"><div class="skeleton skel-avatar"></div><div class="skeleton skel-text" style="flex:1"></div></div>
@@ -420,11 +420,8 @@
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Onboard
           </button>
         </div>
-        <div class="caller-assign-wrap admin-only" style="margin-top:12px">
-          <label>Assigned:</label>
-          <select class="caller-assign-select" id="drawer-caller-select" onchange="assignCaller(this.value)">
-            <option value="">Unassigned</option>
-          </select>
+        <div class="caller-assign-wrap" id="d-caller-assign-wrap" style="margin-top:12px">
+          <!-- Dynamic contents populated in app.js based on role -->
         </div>
       </div>
       <div class="drawer-section">
@@ -460,33 +457,67 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
-    <div class="cpanel-body">
-      <div class="cpanel-section">
-        <div class="cpanel-section-title">Campaign Details</div>
-        <div class="cpanel-field">
-          <div class="cpanel-label">Campaign Name</div>
-          <input class="cpanel-input" id="cp-name" type="text" placeholder="Campaign Name"/>
+    
+    <!-- CPanel Tabs Bar -->
+    <div class="cpanel-tabs-bar" role="tablist">
+      <button class="cpanel-tab-btn active" id="cptab-overview" onclick="switchCPanelTab('overview')">📊 Overview</button>
+      <button class="cpanel-tab-btn" id="cptab-pitch" onclick="switchCPanelTab('pitch')">🗣️ Pitch Guide</button>
+      <button class="cpanel-tab-btn" id="cptab-links" onclick="switchCPanelTab('links')">🔗 Reference URLs</button>
+    </div>
+    
+    <div class="cpanel-body" style="padding:18px 20px; flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:14px">
+      
+      <!-- PANE 1: OVERVIEW -->
+      <div class="cpanel-pane active" id="cppane-overview">
+        <div class="cpanel-section" style="padding-bottom:14px; border-bottom:1px solid var(--border)">
+          <div class="cpanel-section-title" style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--text-dim); margin-bottom:10px">Campaign Details</div>
+          <div class="cpanel-field" style="margin-bottom:12px">
+            <div class="cpanel-label" style="font-size:11px; font-weight:600; color:var(--text-secondary); margin-bottom:5px">Campaign Name</div>
+            <input class="cpanel-input" id="cp-name" type="text" placeholder="Campaign Name"/>
+          </div>
+          <div class="cpanel-field" style="margin-bottom:12px">
+            <div class="cpanel-label" style="font-size:11px; font-weight:600; color:var(--text-secondary); margin-bottom:5px">Industry</div>
+            <input class="cpanel-input" id="cp-industry" type="text" placeholder="e.g. Auto Detailing"/>
+          </div>
         </div>
-        <div class="cpanel-field">
-          <div class="cpanel-label">Industry</div>
-          <input class="cpanel-input" id="cp-industry" type="text" placeholder="e.g. Auto Detailing"/>
+        
+        <div class="cpanel-section" style="margin-top:16px">
+          <div class="cpanel-section-title" style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--text-dim); margin-bottom:10px">Campaign Stats</div>
+          <div class="cpanel-stats-grid" id="cp-stats-grid">
+            <div class="cpanel-stat-card"><div class="cpanel-stat-label">Total Leads</div><div class="cpanel-stat-value" id="cp-stat-total">0</div></div>
+            <div class="cpanel-stat-card"><div class="cpanel-stat-label">Called</div><div class="cpanel-stat-value" id="cp-stat-called">0</div></div>
+            <div class="cpanel-stat-card"><div class="cpanel-stat-label">Interested</div><div class="cpanel-stat-value" id="cp-stat-interested">0</div></div>
+            <div class="cpanel-stat-card"><div class="cpanel-stat-label">Progress</div><div class="cpanel-stat-value" id="cp-stat-pct">0%</div></div>
+          </div>
         </div>
       </div>
-      <div class="cpanel-section">
-        <div class="cpanel-section-title">Reference Sites</div>
-        <div class="ref-urls-list" id="cp-urls-list"></div>
-        <div class="add-url-wrap admin-only">
-          <input class="add-url-input" id="cp-new-url" type="url" placeholder="https://example.com"/>
-          <button class="btn-sm btn-ghost" onclick="addRefUrl()">+ Add</button>
+      
+      <!-- PANE 2: PITCH GUIDE -->
+      <div class="cpanel-pane" id="cppane-pitch">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+          <div class="cpanel-section-title" style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--text-dim); margin-bottom:0">Pitch Guide &amp; Industry Info</div>
+          <button class="btn-sm btn-ghost" id="cp-pitch-copy-btn" onclick="copyCampaignPitch()" style="padding:4px 8px; font-size:11px">Copy Guide 📋</button>
+        </div>
+        <div class="cpanel-pitch-display" id="cp-pitch-guide" placeholder="Type campaign pitch guide and objection handling notes here..."></div>
+      </div>
+      
+      <!-- PANE 3: REFERENCE LINKS -->
+      <div class="cpanel-pane" id="cppane-links">
+        <div class="cpanel-section">
+          <div class="cpanel-section-title" style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--text-dim); margin-bottom:10px">Reference Sites</div>
+          <div class="ref-urls-list" id="cp-urls-list" style="margin-bottom:14px"></div>
+          <div class="add-url-wrap admin-only" style="display:flex; gap:6px">
+            <input class="add-url-input" id="cp-new-url" type="url" placeholder="https://example.com" style="flex:1"/>
+            <button class="btn-sm btn-ghost" onclick="addRefUrl()">+ Add</button>
+          </div>
         </div>
       </div>
-      <div class="cpanel-section">
-        <div class="cpanel-section-title">Pitch Guide &amp; Industry Info</div>
-        <textarea class="cpanel-textarea" id="cp-pitch-guide" placeholder="Industry overview, pitch angles, objection handling…" style="min-height:200px"></textarea>
-      </div>
-      <div class="cpanel-section admin-only">
-        <button class="cpanel-save-btn" onclick="saveCampaignPanel()">Save Changes</button>
-      </div>
+      
+    </div>
+    
+    <!-- Footer Actions (Admin Only) -->
+    <div class="cpanel-footer admin-only" style="padding:14px 20px; border-top:1px solid var(--border); background:var(--bg-surface-2); display:flex; justify-content:flex-end; flex-shrink:0">
+      <button class="cpanel-save-btn" onclick="saveCampaignPanel()" style="width:auto; padding:8px 24px">Save Changes</button>
     </div>
   </div>
 </div>
@@ -542,6 +573,6 @@
   </div>
 </div>
 
-<script src="assets/app.js?v=8"></script>
+<script src="assets/app.js?v=13"></script>
 </body>
 </html>

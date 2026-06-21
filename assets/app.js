@@ -70,7 +70,7 @@ async function handleLogin(){
       if(error||!data)showLoginError('Invalid credentials or account inactive.');
       else{session={role:'caller',id:data.id,name:data.name,username:data.username};saveSession();await initApp();showScreen('app');}
     }
-  }catch(e){showLoginError('Connection error. Please try again.');}
+  }catch(e){console.error('Login error details:',e);showLoginError('Connection error. Please try again.');}
   finally{setLoginLoading(false);}
 }
 function setLoginLoading(l){
@@ -132,8 +132,10 @@ async function loadCallers(){
   fcEl.innerHTML='<option value="">All Callers</option>';
   allCallers.forEach(c=>{fcEl.innerHTML+=`<option value="${c.id}">${esc(c.name)}</option>`;});
   const dsEl=document.getElementById('drawer-caller-select');
-  dsEl.innerHTML='<option value="">Unassigned</option>';
-  allCallers.forEach(c=>{dsEl.innerHTML+=`<option value="${c.id}">${esc(c.name)}</option>`;});
+  if(dsEl){
+    dsEl.innerHTML='<option value="">Unassigned</option>';
+    allCallers.forEach(c=>{dsEl.innerHTML+=`<option value="${c.id}">${esc(c.name)}</option>`;});
+  }
 }
 
 /* ═══ REALTIME ═══ */
@@ -365,7 +367,7 @@ function renderLeadsTable(){
         <td class="td-phone"><a href="tel:${lead.phone}" onclick="event.stopPropagation()">${esc(lead.phone_display||lead.phone||'–')}</a></td>
         <td class="col-date td-mono" style="font-size:11px;color:var(--text-muted)">${lead.added_date||'–'}</td>
         <td>${statusBadgeHtml(status)}</td>
-        <td class="col-caller admin-only">${session?.role==='admin'?`<select class="caller-select" onclick="event.stopPropagation()" onchange="quickAssignCaller(${lead.id},this.value)"><option value="">Unassigned</option>${allCallers.map(c=>`<option value="${c.id}" ${ls.caller_id===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>`:esc(ls.callers?.name||'–')}</td>
+        <td class="col-caller">${session?.role==='admin'?`<select class="caller-select" onclick="event.stopPropagation()" onchange="quickAssignCaller(${lead.id},this.value)"><option value="">Unassigned</option>${allCallers.map(c=>`<option value="${c.id}" ${ls.caller_id===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>`:esc(ls.callers?.name||'–')}</td>
         <td class="col-sev">${sevBadgeHtml(lead.severity_score)}</td>
         <td onclick="event.stopPropagation()"><div class="td-actions">
           <button class="action-icon-btn" onclick="openDrawer(${lead.id})" title="View">
@@ -459,8 +461,41 @@ function openDrawer(leadId){
   document.getElementById('d-date').textContent=lead.added_date||'–';
   updateDrawerStatusButtons(ls.status||'not_called');
 
-  const dsEl=document.getElementById('drawer-caller-select');
-  dsEl.value=ls.caller_id||'';
+  const assignWrap = document.getElementById('d-caller-assign-wrap');
+  const isAdmin = session.role === 'admin';
+  const assignedCallerId = ls.caller_id || '';
+  const assignedCallerName = ls.callers?.name || '';
+  
+  if (assignWrap) {
+    if (isAdmin) {
+      assignWrap.innerHTML = `
+        <label for="drawer-caller-select">Assigned:</label>
+        <select class="caller-assign-select" id="drawer-caller-select" onchange="assignCaller(this.value)">
+          <option value="">Unassigned</option>
+          ${allCallers.map(c => `<option value="${c.id}" ${assignedCallerId === c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}
+        </select>
+      `;
+    } else {
+      if (!assignedCallerId) {
+        assignWrap.innerHTML = `
+          <label>Assigned:</label>
+          <span style="font-size:12.5px;color:var(--text-muted);margin-right:8px">Unassigned</span>
+          <button class="btn-sm btn-ghost" onclick="assignCaller('${session.id}')" style="padding:4px 10px;font-size:11px">+ Claim Lead</button>
+        `;
+      } else if (assignedCallerId === session.id) {
+        assignWrap.innerHTML = `
+          <label>Assigned:</label>
+          <span style="font-size:12.5px;color:var(--green);font-weight:600;margin-right:8px">✓ You</span>
+          <button class="btn-sm btn-danger" onclick="assignCaller('')" style="padding:4px 10px;font-size:11px;background:none;border:1px solid var(--red-border);color:var(--red)">Release</button>
+        `;
+      } else {
+        assignWrap.innerHTML = `
+          <label>Assigned:</label>
+          <span style="font-size:12.5px;color:var(--text-primary);font-weight:500">${esc(assignedCallerName)}</span>
+        `;
+      }
+    }
+  }
 
   const notesEl=document.getElementById('d-notes');
   notesEl.value=ls.notes||'';
@@ -591,13 +626,43 @@ function animateRowMove(leadId,newStatus){
 
 async function assignCaller(callerId){if(!currentDrawerLeadId)return;await quickAssignCaller(currentDrawerLeadId,callerId);}
 async function quickAssignCaller(leadId,callerId){
+  const ls=allStatuses[leadId]||{};
+  const currentCallerId=ls.caller_id||'';
+  
+  if (session.role === 'caller') {
+    const targetCallerId = callerId || '';
+    if (targetCallerId === session.id) {
+      if (currentCallerId && currentCallerId !== session.id) {
+        showToast('Lead is already assigned to another caller','error');
+        return;
+      }
+    } else if (targetCallerId === '') {
+      if (currentCallerId !== session.id) {
+        showToast('You can only release your own leads','error');
+        return;
+      }
+    } else {
+      showToast('Unauthorized assignment operation','error');
+      return;
+    }
+  }
+  
   try{
     const{error}=await db.from('lead_status').upsert({lead_id:leadId,caller_id:callerId||null,updated_at:new Date().toISOString()},{onConflict:'lead_id'});
     if(error)throw error;
-    const ls=allStatuses[leadId]||{};
-    ls.caller_id=callerId;ls.callers=callerId?{name:allCallers.find(c=>c.id===callerId)?.name,id:callerId}:null;
+    
+    ls.caller_id=callerId||null;
+    ls.callers=callerId?{name:allCallers.find(c=>c.id===callerId)?.name,id:callerId}:null;
     allStatuses[leadId]=ls;
-    renderLeadsTable();showToast('Caller assigned','success');
+    
+    if (currentDrawerLeadId === leadId) {
+      openDrawer(leadId);
+    }
+    
+    renderLeadsTable();
+    if(session?.role==='caller')applyMyFilters();
+    loadDashboard();
+    showToast(callerId?'Lead claimed':'Lead released','success');
   }catch(e){console.error('quickAssignCaller error:',e);showToast('Failed to assign: '+(e.message||'error'),'error');}
 }
 
@@ -626,18 +691,59 @@ function copyPitch(){
 }
 
 /* ═══ CAMPAIGN INFO PANEL ═══ */
+function switchCPanelTab(tabName) {
+  document.querySelectorAll('.cpanel-tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.id === 'cptab-' + tabName);
+  });
+  document.querySelectorAll('.cpanel-pane').forEach(pane => {
+    pane.classList.toggle('active', pane.id === 'cppane-' + tabName);
+  });
+}
+
+function copyCampaignPitch() {
+  const guideText = document.getElementById('cp-pitch-guide')?.innerText || '';
+  navigator.clipboard.writeText(guideText).then(() => {
+    const btn = document.getElementById('cp-pitch-copy-btn');
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('ok');
+    setTimeout(() => {
+      btn.textContent = 'Copy Guide 📋';
+      btn.classList.remove('ok');
+    }, 2000);
+  });
+}
+
 function openCampaignPanel(){
   const c=allCampaigns.find(c=>c.id===currentCampaignId);
   if(!c)return;
   const isAdmin=session&&session.role==='admin';
 
+  switchCPanelTab('overview');
+
   document.getElementById('cp-name').value=c.name||'';
   document.getElementById('cp-name').readOnly=!isAdmin;
   document.getElementById('cp-industry').value=c.industry||'';
   document.getElementById('cp-industry').readOnly=!isAdmin;
-  document.getElementById('cp-pitch-guide').value=c.pitch_guide||'';
-  document.getElementById('cp-pitch-guide').readOnly=!isAdmin;
+  
+  const guideEl = document.getElementById('cp-pitch-guide');
+  if (guideEl) {
+    guideEl.innerText = c.pitch_guide || '';
+    guideEl.contentEditable = isAdmin ? "true" : "false";
+    guideEl.style.cursor = isAdmin ? "text" : "default";
+  }
   renderRefUrls(c.reference_urls||[]);
+
+  // Calculate campaign specific statistics
+  const cLeads=allLeads.filter(l=>l.campaign_id===c.id);
+  const totalLeads=cLeads.length;
+  const calledLeads=cLeads.filter(l=>(allStatuses[l.id]?.status||'not_called')==='called').length;
+  const interestedLeads=cLeads.filter(l=>(allStatuses[l.id]?.status||'not_called')==='interested').length;
+  const pct=totalLeads>0?Math.round(calledLeads/totalLeads*100):0;
+
+  document.getElementById('cp-stat-total').textContent=totalLeads;
+  document.getElementById('cp-stat-called').textContent=calledLeads;
+  document.getElementById('cp-stat-interested').textContent=interestedLeads;
+  document.getElementById('cp-stat-pct').textContent=pct+'%';
 
   document.getElementById('cpanel-overlay').classList.add('open');
   document.body.style.overflow='hidden';
@@ -680,7 +786,7 @@ async function saveCampaignPanel(){
   if(!c)return;
   const name=document.getElementById('cp-name').value.trim();
   const industry=document.getElementById('cp-industry').value.trim();
-  const pitch_guide=document.getElementById('cp-pitch-guide').value;
+  const pitch_guide=document.getElementById('cp-pitch-guide')?.innerText || '';
   if(!name){showToast('Campaign name is required','error');return;}
   try{
     await db.from('campaigns').update({name,industry,pitch_guide,reference_urls:c.reference_urls||[]}).eq('id',c.id);
@@ -884,55 +990,231 @@ function deleteCaller(id){
 
 /* ═══ DASHBOARD ═══ */
 function loadDashboard(){
-  const total=allLeads.length;
-  const today=new Date().toISOString().split('T')[0];
-  const sList=Object.values(allStatuses);
+  // Populate Campaign filter select once
+  const dcEl=document.getElementById('dash-filter-campaign');
+  if(dcEl && dcEl.options.length===1){
+    allCampaigns.forEach(c=>{
+      const opt=document.createElement('option');
+      opt.value=c.id;
+      opt.textContent='📁 '+c.name;
+      dcEl.appendChild(opt);
+    });
+  }
+
+  const campaignFilter = document.getElementById('dash-filter-campaign')?.value || 'all';
+  const dateFilter = document.getElementById('dash-filter-date')?.value || 'all';
+
+  // Filter leads by campaign
+  let dashboardLeads = allLeads;
+  if (campaignFilter !== 'all') {
+    dashboardLeads = allLeads.filter(l => l.campaign_id === campaignFilter);
+  }
+  const total = dashboardLeads.length;
+  const todayStr=new Date().toISOString().split('T')[0];
+
+  // Filter statuses by campaign & date
+  const sList = Object.values(allStatuses).filter(s => {
+    const lead = allLeads.find(l => l.id === s.lead_id);
+    if (!lead || (campaignFilter !== 'all' && lead.campaign_id !== campaignFilter)) return false;
+    
+    if (dateFilter === 'today') {
+      return isToday(s.updated_at);
+    } else if (dateFilter === 'past') {
+      return s.updated_at && !isToday(s.updated_at);
+    }
+    return true;
+  });
+
   const called=sList.filter(s=>s.status==='called').length;
   const fu=sList.filter(s=>s.status==='follow_up').length;
   const interested=sList.filter(s=>s.status==='interested').length;
   const onboard=sList.filter(s=>s.status==='onboard').length;
   const nc=total-called-fu-interested-onboard;
-  const newToday=allLeads.filter(l=>l.added_date===today).length;
 
   document.getElementById('stats-grid').innerHTML=`
-    <div class="stat-card"><div class="stat-label">Total Leads</div><div class="stat-value c-accent">${total}</div><div class="stat-delta">${allCampaigns.length} campaign${allCampaigns.length!==1?'s':''}</div></div>
-    <div class="stat-card"><div class="stat-label">Not Called</div><div class="stat-value">${nc}</div><div class="stat-delta">${total>0?Math.round(nc/total*100):0}% remaining</div></div>
-    <div class="stat-card"><div class="stat-label">Called</div><div class="stat-value c-green">${called}</div><div class="stat-delta">${total>0?Math.round(called/total*100):0}% complete</div></div>
-    <div class="stat-card"><div class="stat-label">Follow Up</div><div class="stat-value c-yellow">${fu}</div><div class="stat-delta">Needs callback</div></div>
-    <div class="stat-card"><div class="stat-label">⭐ Interested</div><div class="stat-value c-purple">${interested}</div><div class="stat-delta">${total>0?Math.round(interested/total*100):0}% warm leads</div></div>
-    <div class="stat-card"><div class="stat-label">🚀 Onboard</div><div class="stat-value c-teal">${onboard}</div><div class="stat-delta">Converted clients</div></div>
+    <div class="stat-card fade-in-el"><div class="stat-label">Total Leads</div><div class="stat-value c-accent">${total}</div><div class="stat-delta">${campaignFilter==='all'?allCampaigns.length:1} campaign${campaignFilter==='all'&&allCampaigns.length!==1?'s':''}</div></div>
+    <div class="stat-card fade-in-el"><div class="stat-label">Not Called</div><div class="stat-value">${nc}</div><div class="stat-delta">${total>0?Math.round(nc/total*100):0}% remaining</div></div>
+    <div class="stat-card fade-in-el"><div class="stat-label">Called</div><div class="stat-value c-green">${called}</div><div class="stat-delta">${total>0?Math.round(called/total*100):0}% complete</div></div>
+    <div class="stat-card fade-in-el"><div class="stat-label">Follow Up</div><div class="stat-value c-yellow">${fu}</div><div class="stat-delta">Needs callback</div></div>
+    <div class="stat-card fade-in-el"><div class="stat-label">⭐ Interested</div><div class="stat-value c-purple">${interested}</div><div class="stat-delta">${total>0?Math.round(interested/total*100):0}% warm leads</div></div>
+    <div class="stat-card fade-in-el"><div class="stat-label">🚀 Onboard</div><div class="stat-value c-teal">${onboard}</div><div class="stat-delta">Converted clients</div></div>
   `;
 
-  // Recent Activity — paginated
-  const allRecentStatuses=Object.values(allStatuses).filter(s=>s.status!=='not_called'&&s.updated_at).sort((a,b)=>new Date(b.updated_at)-new Date(a.updated_at));
-  const actTotalPages=Math.ceil(allRecentStatuses.length/ACTIVITY_PER_PAGE)||1;
+  // Recent Activity — filtered & paginated
+  const allRecentStatuses = Object.values(allStatuses).filter(s => {
+    if (s.status === 'not_called' || !s.updated_at) return false;
+    
+    const lead = allLeads.find(l => l.id === s.lead_id);
+    if (!lead || (campaignFilter !== 'all' && lead.campaign_id !== campaignFilter)) return false;
+    
+    if (dateFilter === 'today') {
+      return isToday(s.updated_at);
+    } else if (dateFilter === 'past') {
+      return !isToday(s.updated_at);
+    }
+    return true;
+  }).sort((a,b)=>new Date(b.updated_at)-new Date(a.updated_at));
+
+  const activityPerPage = window.innerWidth >= 1024 ? 10 : 5;
+  const actTotalPages=Math.ceil(allRecentStatuses.length/activityPerPage)||1;
   if(activityPage>actTotalPages)activityPage=actTotalPages;
-  const recentStatuses=allRecentStatuses.slice((activityPage-1)*ACTIVITY_PER_PAGE,activityPage*ACTIVITY_PER_PAGE);
+  const recentStatuses=allRecentStatuses.slice((activityPage-1)*activityPerPage,activityPage*activityPerPage);
+  
   const actEl=document.getElementById('recent-activity');
-  if(allRecentStatuses.length===0){actEl.innerHTML='<div class="empty-state" style="padding:30px"><div class="empty-icon">📋</div><div class="empty-title">No activity yet</div></div>';}
-  else{actEl.innerHTML=recentStatuses.map(s=>{
-    const lead=allLeads.find(l=>l.id===s.lead_id);if(!lead)return'';
-    const callerName=s.callers?.name||'Unknown';
-    const statusMeta={
-      called:{label:'called',color:'var(--green)'},
-      follow_up:{label:'marked follow-up on',color:'var(--yellow)'},
-      interested:{label:'marked interested in',color:'var(--purple)'},
-      onboard:{label:'onboarded',color:'var(--teal)'}
-    };
-    const meta=statusMeta[s.status]||{label:'updated',color:'var(--accent)'};
-    return`<div class="activity-item"><div class="activity-dot" style="background:${meta.color}"></div><div class="activity-text"><strong>${esc(callerName)}</strong> ${meta.label} <strong>${esc(lead.name)}</strong></div><div class="activity-time">${formatTimeAgo(s.updated_at)}</div></div>`;
-  }).join('');}
+  if(allRecentStatuses.length===0){
+    actEl.innerHTML='<div class="empty-state" style="padding:30px"><div class="empty-icon">📋</div><div class="empty-title">No activity yet</div></div>';
+  } else {
+    actEl.innerHTML=recentStatuses.map(s=>{
+      const lead=allLeads.find(l=>l.id===s.lead_id);if(!lead)return'';
+      const campaign=allCampaigns.find(c=>c.id===lead.campaign_id);
+      const campaignLabel=campaign?`<span class="activity-campaign-tag">${esc(campaign.name)}</span>`:'';
+      const callerName=s.callers?.name||'Unknown';
+      const statusMeta={
+        called:{label:'called',color:'var(--green)'},
+        follow_up:{label:'marked follow-up on',color:'var(--yellow)'},
+        interested:{label:'marked interested in',color:'var(--purple)'},
+        onboard:{label:'onboarded',color:'var(--teal)'}
+      };
+      const meta=statusMeta[s.status]||{label:'updated',color:'var(--accent)'};
+      return`<div class="activity-item fade-in-el"><div class="activity-dot" style="background:${meta.color}"></div><div class="activity-text"><strong>${esc(callerName)}</strong> ${meta.label} <strong>${esc(lead.name)}</strong>${campaignLabel}</div><div class="activity-time" title="${formatDateTime(s.updated_at)}">${formatDate(s.updated_at)} · ${formatTimeAgo(s.updated_at)}</div></div>`;
+    }).join('');
+  }
   renderDashPagination('activity-pagination',activityPage,actTotalPages,(p)=>{activityPage=p;loadDashboard();});
 
-  // Caller Progress — paginated
-  const activeCallers=allCallers.filter(c=>c.is_active);
-  const cpTotalPages=Math.ceil(activeCallers.length/CALLERS_PER_PAGE)||1;
-  if(callerProgressPage>cpTotalPages)callerProgressPage=cpTotalPages;
-  const pageCallers=activeCallers.slice((callerProgressPage-1)*CALLERS_PER_PAGE,callerProgressPage*CALLERS_PER_PAGE);
-  const progressEl=document.getElementById('caller-progress');
-  if(allCallers.length===0){progressEl.innerHTML='<div class="empty-state" style="padding:24px"><div class="empty-title">No callers yet</div><button class="btn-sm btn-primary" style="margin-top:8px" onclick="showView(\'callers\')">Add Callers</button></div>';}
-  else{progressEl.innerHTML=pageCallers.map(c=>{const cs=Object.values(allStatuses).filter(s=>s.caller_id===c.id);const cc=cs.filter(s=>s.status==='called').length;const fu=cs.filter(s=>s.status==='follow_up').length;const interested=cs.filter(s=>s.status==='interested').length;const onboard=cs.filter(s=>s.status==='onboard').length;const initials=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();return`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border)"><div class="caller-avatar">${initials}</div><div style="flex:1"><div style="font-size:12.5px;font-weight:600;color:var(--text-primary)">${esc(c.name)}</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">Called: <b style="color:var(--green)">${cc}</b> &nbsp; Follow Up: <b style="color:var(--yellow)">${fu}</b> &nbsp; Interested: <b style="color:var(--purple)">${interested}</b> &nbsp; Onboard: <b style="color:var(--teal)">${onboard}</b></div></div></div>`;}).join('');}
-  renderDashPagination('caller-progress-pagination',callerProgressPage,cpTotalPages,(p)=>{callerProgressPage=p;loadDashboard();});
+  // Caller Progress / My Today's Progress — filtered & dynamic by role
+  const panelTitleEl=document.getElementById('dash-right-panel-title');
+  const paginationEl=document.getElementById('caller-progress-pagination');
+  const isAdmin = session?.role === 'admin';
+  
+  if (isAdmin) {
+    if (panelTitleEl) panelTitleEl.textContent = 'Caller Progress';
+    if (paginationEl) paginationEl.style.display = '';
+    
+    const activeCallers=allCallers.filter(c=>c.is_active);
+    const cpTotalPages=Math.ceil(activeCallers.length/CALLERS_PER_PAGE)||1;
+    if(callerProgressPage>cpTotalPages)callerProgressPage=cpTotalPages;
+    const pageCallers=activeCallers.slice((callerProgressPage-1)*CALLERS_PER_PAGE,callerProgressPage*CALLERS_PER_PAGE);
+    const progressEl=document.getElementById('caller-progress');
+    
+    if(allCallers.length===0){
+      progressEl.innerHTML='<div class="empty-state" style="padding:24px"><div class="empty-title">No callers yet</div><button class="btn-sm btn-primary" style="margin-top:8px" onclick="showView(\'callers\')">Add Callers</button></div>';
+    } else {
+      progressEl.innerHTML=pageCallers.map(c=>{
+        const cs=Object.values(allStatuses).filter(s=>s.caller_id===c.id);
+        
+        // Filter statuses by campaign
+        let callerLeads=cs;
+        if (campaignFilter !== 'all') {
+          callerLeads = cs.filter(s => {
+            const lead = allLeads.find(l => l.id === s.lead_id);
+            return lead && lead.campaign_id === campaignFilter;
+          });
+        }
+        
+        // Find unique campaigns this caller has touched
+        const callerCampaignIds = [...new Set(cs.map(s => {
+          const lead = allLeads.find(l => l.id === s.lead_id);
+          return lead ? lead.campaign_id : null;
+        }).filter(Boolean))];
+        
+        const callerCampaignNames = callerCampaignIds.map(cid => {
+          const camp = allCampaigns.find(camp => camp.id === cid);
+          return camp ? camp.name : '';
+        }).filter(Boolean).join(', ');
+
+        // Filter by date
+        if (dateFilter === 'today') {
+          callerLeads = callerLeads.filter(s => isToday(s.updated_at));
+        } else if (dateFilter === 'past') {
+          callerLeads = callerLeads.filter(s => s.updated_at && !isToday(s.updated_at));
+        }
+
+        const cc=callerLeads.filter(s=>s.status==='called').length;
+        const fu=callerLeads.filter(s=>s.status==='follow_up').length;
+        const interested=callerLeads.filter(s=>s.status==='interested').length;
+        const onboard=callerLeads.filter(s=>s.status==='onboard').length;
+        const initials=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+        
+        const activeCampText = campaignFilter === 'all' ? (callerCampaignNames || 'No active campaigns') : (allCampaigns.find(camp=>camp.id===campaignFilter)?.name || '');
+        const datePeriodLabel = dateFilter === 'today' ? 'Today' : dateFilter === 'past' ? 'Past History' : 'All Time';
+
+        return `
+          <div class="caller-progress-item fade-in-el">
+            <div class="caller-avatar">${initials}</div>
+            <div style="flex:1">
+              <div class="caller-progress-header">
+                <span class="caller-progress-name">${esc(c.name)}</span>
+                <span class="caller-progress-campaign" title="${esc(activeCampText)}">${esc(activeCampText)}</span>
+              </div>
+              <div class="caller-progress-stats">
+                Called: <b style="color:var(--green)">${cc}</b> &nbsp; Follow Up: <b style="color:var(--yellow)">${fu}</b> &nbsp; Interested: <b style="color:var(--purple)">${interested}</b> &nbsp; Onboard: <b style="color:var(--teal)">${onboard}</b>
+              </div>
+              <div class="caller-progress-meta">
+                Period: <strong>${datePeriodLabel}</strong>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    renderDashPagination('caller-progress-pagination',callerProgressPage,cpTotalPages,(p)=>{callerProgressPage=p;loadDashboard();});
+  } else {
+    if (panelTitleEl) panelTitleEl.textContent = "My Today's Progress";
+    if (paginationEl) paginationEl.innerHTML = '';
+    const progressEl=document.getElementById('caller-progress');
+    
+    const myStatuses = Object.values(allStatuses).filter(s => s.caller_id === session.id);
+    const todayStatuses = myStatuses.filter(s => isToday(s.updated_at));
+    
+    // Filter by campaign
+    let filteredTodayStatuses = todayStatuses;
+    if (campaignFilter !== 'all') {
+      filteredTodayStatuses = todayStatuses.filter(s => {
+        const lead = allLeads.find(l => l.id === s.lead_id);
+        return lead && lead.campaign_id === campaignFilter;
+      });
+    }
+    
+    const cc = filteredTodayStatuses.filter(s => s.status === 'called').length;
+    const fu = filteredTodayStatuses.filter(s => s.status === 'follow_up').length;
+    const interested = filteredTodayStatuses.filter(s => s.status === 'interested').length;
+    const onboard = filteredTodayStatuses.filter(s => s.status === 'onboard').length;
+    const totalActions = filteredTodayStatuses.length;
+    
+    const todayDateLabel = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const selectedCampaignName = campaignFilter === 'all' ? 'All Campaigns' : (allCampaigns.find(c=>c.id===campaignFilter)?.name || '');
+    
+    progressEl.innerHTML = `
+      <div class="caller-my-progress fade-in-el" style="padding:16px; display:flex; flex-direction:column; gap:12px">
+        <div style="font-size:12px; color:var(--text-muted); font-weight:500; display:flex; justify-content:space-between">
+          <span>Date: <strong>${todayDateLabel}</strong></span>
+          <span style="max-width: 140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap" title="${esc(selectedCampaignName)}"><strong>${esc(selectedCampaignName)}</strong></span>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+          <div class="stat-card-mini" style="background:var(--green-subtle); border:1px solid var(--green-border); padding:12px; border-radius:var(--radius-sm); display:flex; flex-direction:column">
+            <div style="font-size:10px; font-weight:600; text-transform:uppercase; color:var(--green); letter-spacing:.02em">Called</div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:700; color:var(--green); margin-top:4px">${cc}</div>
+          </div>
+          <div class="stat-card-mini" style="background:var(--yellow-subtle); border:1px solid var(--yellow-border); padding:12px; border-radius:var(--radius-sm); display:flex; flex-direction:column">
+            <div style="font-size:10px; font-weight:600; text-transform:uppercase; color:var(--yellow); letter-spacing:.02em">Follow Up</div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:700; color:var(--yellow); margin-top:4px">${fu}</div>
+          </div>
+          <div class="stat-card-mini" style="background:var(--purple-subtle); border:1px solid var(--purple-border); padding:12px; border-radius:var(--radius-sm); display:flex; flex-direction:column">
+            <div style="font-size:10px; font-weight:600; text-transform:uppercase; color:var(--purple); letter-spacing:.02em">Interested</div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:700; color:var(--purple); margin-top:4px">${interested}</div>
+          </div>
+          <div class="stat-card-mini" style="background:var(--teal-subtle); border:1px solid var(--teal-border); padding:12px; border-radius:var(--radius-sm); display:flex; flex-direction:column">
+            <div style="font-size:10px; font-weight:600; text-transform:uppercase; color:var(--teal); letter-spacing:.02em">Onboard</div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:700; color:var(--teal); margin-top:4px">${onboard}</div>
+          </div>
+        </div>
+        <div style="margin-top:8px; padding-top:12px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center">
+          <span style="font-size:12.5px; font-weight:600; color:var(--text-secondary)">Total Actions Today</span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:700; color:var(--accent)">${totalActions}</span>
+        </div>
+      </div>
+    `;
+  }
 }
 
 /* ═══ SIDEBAR ═══ */
@@ -991,6 +1273,17 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 function copyText(t,btn){navigator.clipboard.writeText(t).then(()=>{btn.classList.add('ok');setTimeout(()=>btn.classList.remove('ok'),2000);});}
 function formatTimeAgo(d){if(!d)return'–';const diff=Date.now()-new Date(d);const m=Math.floor(diff/60000);const h=Math.floor(m/60);const day=Math.floor(h/24);if(m<1)return'just now';if(m<60)return m+'m ago';if(h<24)return h+'h ago';return day+'d ago';}
 function formatDate(d){if(!d)return'–';const dt=new Date(d);return dt.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
+function isToday(dateStr) {
+  if(!dateStr)return false;
+  const d=new Date(dateStr);
+  const today=new Date();
+  return d.getFullYear()===today.getFullYear()&&d.getMonth()===today.getMonth()&&d.getDate()===today.getDate();
+}
+function formatDateTime(d){
+  if(!d)return'–';
+  const dt=new Date(d);
+  return dt.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' + dt.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+}
 
 function showToast(msg,type='info'){
   const icons={success:'✓',error:'✕',info:'ℹ'};
@@ -1033,3 +1326,13 @@ function showToast(msg,type='info'){
     showScreen('login');
   }
 })();
+
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    if (document.getElementById('view-dashboard')?.classList.contains('active')) {
+      loadDashboard();
+    }
+  }, 250);
+});
