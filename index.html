@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WebWynk Leads — CRM</title>
+  <meta name="description" content="WebWynk Leads CRM — Internal lead tracking and campaign management"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="assets/style.css?v=8"/>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<!-- ══════ LOGIN ══════ -->
+<div id="screen-login" class="screen">
+  <div class="login-bg"></div>
+  <button class="login-theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+    <svg id="theme-icon-login" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+  </button>
+  <div class="login-card">
+    <div class="login-card-header">
+      <div class="login-logo">W</div>
+      <div class="login-title">WebWynk Leads</div>
+      <div class="login-sub">Internal CRM — Sign in to continue</div>
+    </div>
+    <div class="login-tabs" role="tablist">
+      <button class="login-tab active" id="tab-admin" onclick="switchLoginTab('admin')" role="tab">👑 Admin</button>
+      <button class="login-tab" id="tab-caller" onclick="switchLoginTab('caller')" role="tab">📞 Caller</button>
+    </div>
+    <div class="login-body">
+      <div class="form-group">
+        <label class="form-label" for="login-username">Username</label>
+        <input class="form-input" type="text" id="login-username" placeholder="Enter username" autocomplete="username"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="login-password">Password</label>
+        <div class="pw-wrap">
+          <input class="form-input" type="password" id="login-password" placeholder="Enter password" autocomplete="current-password"/>
+          <button class="pw-toggle" onclick="togglePwVisibility()" type="button" tabindex="-1">
+            <svg id="pw-eye" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="login-error" id="login-error"></div>
+      <button class="btn-login" id="btn-login" onclick="handleLogin()">
+        <span id="login-btn-text">Sign In</span>
+        <svg id="login-spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;animation:spin .8s linear infinite"><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-opacity=".3"/><path d="M21 12a9 9 0 00-9-9"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ APP ══════ -->
+<div id="screen-app" class="screen">
+  <nav class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-logo">W</div>
+      <span class="topbar-name">WebWynk Leads</span>
+    </div>
+    <div class="topbar-right">
+      <div class="user-badge">
+        <div class="user-avatar" id="user-avatar-initials">A</div>
+        <span id="user-display-name">Admin</span>
+        <div class="role-dot" id="role-dot"></div>
+      </div>
+      <button class="icon-btn" onclick="toggleTheme()" title="Toggle theme">
+        <svg id="theme-icon-app" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
+      <button class="icon-btn hamburger" onclick="toggleSidebar()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <button class="icon-btn" onclick="logout()" title="Logout" style="color:var(--red)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <div class="app-inner">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-section">Main</div>
+      <button class="nav-item active" id="nav-dashboard" onclick="showView('dashboard')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item" id="nav-all-leads" onclick="showView('all-leads')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        All Leads
+        <span class="nav-count" id="nav-count-leads">–</span>
+      </button>
+      <button class="nav-item" id="nav-my-leads" onclick="showView('my-leads')" style="display:none">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012.18 1h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.91 8.09a16 16 0 006 6l1.45-1.45a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92z"/></svg>
+        My Leads
+        <span class="nav-count" id="nav-count-my">–</span>
+      </button>
+      <div class="sidebar-section admin-only">Admin</div>
+      <button class="nav-item admin-only" id="nav-campaigns" onclick="showView('campaigns')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+        Campaigns
+        <span class="nav-count" id="nav-count-campaigns">–</span>
+      </button>
+      <button class="nav-item admin-only" id="nav-callers" onclick="showView('callers')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        Callers
+        <span class="nav-count" id="nav-count-callers">–</span>
+      </button>
+      <div class="sidebar-footer">
+        <button class="nav-item" onclick="logout()" style="color:var(--red)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Sign Out
+        </button>
+      </div>
+    </nav>
+    <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar()"></div>
+
+    <main class="main-content">
+
+      <!-- DASHBOARD -->
+      <div class="view active" id="view-dashboard">
+        <div class="view-header">
+          <div class="view-title">Dashboard</div>
+          <div class="view-sub">Overview of your outreach campaigns</div>
+        </div>
+        <div class="view-body">
+          <div class="stats-grid" id="stats-grid">
+            <div class="stat-card"><div class="stat-label"><div class="skeleton skel-text" style="width:70px"></div></div><div class="skeleton skel-title" style="width:50px;margin-top:8px"></div></div>
+            <div class="stat-card"><div class="stat-label"><div class="skeleton skel-text" style="width:70px"></div></div><div class="skeleton skel-title" style="width:50px;margin-top:8px"></div></div>
+            <div class="stat-card"><div class="stat-label"><div class="skeleton skel-text" style="width:70px"></div></div><div class="skeleton skel-title" style="width:50px;margin-top:8px"></div></div>
+            <div class="stat-card"><div class="stat-label"><div class="skeleton skel-text" style="width:70px"></div></div><div class="skeleton skel-title" style="width:50px;margin-top:8px"></div></div>
+            <div class="stat-card"><div class="stat-label"><div class="skeleton skel-text" style="width:70px"></div></div><div class="skeleton skel-title" style="width:50px;margin-top:8px"></div></div>
+            <div class="stat-card"><div class="stat-label"><div class="skeleton skel-text" style="width:70px"></div></div><div class="skeleton skel-title" style="width:50px;margin-top:8px"></div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 320px;gap:14px" class="dash-grid">
+            <div class="table-wrapper" style="min-height:200px">
+              <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+                <span style="font-size:13px;font-weight:700;color:var(--text-primary)">Recent Activity</span>
+                <button class="btn-sm btn-ghost" onclick="showView('all-leads')">View All →</button>
+              </div>
+              <div id="recent-activity" class="activity-list" style="padding:8px">
+                <div class="skel-row"><div class="skeleton" style="width:8px;height:8px;border-radius:50%;flex-shrink:0"></div><div class="skeleton skel-text" style="flex:1"></div><div class="skeleton skel-text" style="width:60px"></div></div>
+                <div class="skel-row"><div class="skeleton" style="width:8px;height:8px;border-radius:50%;flex-shrink:0"></div><div class="skeleton skel-text" style="flex:1"></div><div class="skeleton skel-text" style="width:60px"></div></div>
+                <div class="skel-row"><div class="skeleton" style="width:8px;height:8px;border-radius:50%;flex-shrink:0"></div><div class="skeleton skel-text" style="flex:1"></div><div class="skeleton skel-text" style="width:60px"></div></div>
+              </div>
+              <div id="activity-pagination"></div>
+            </div>
+            <div class="table-wrapper admin-only" style="min-height:200px">
+              <div style="padding:12px 16px;border-bottom:1px solid var(--border)">
+                <span style="font-size:13px;font-weight:700;color:var(--text-primary)">Caller Progress</span>
+              </div>
+              <div id="caller-progress" style="padding:0">
+                <div class="skel-row" style="padding:10px 12px"><div class="skeleton skel-avatar"></div><div class="skeleton skel-text" style="flex:1"></div></div>
+                <div class="skel-row" style="padding:10px 12px"><div class="skeleton skel-avatar"></div><div class="skeleton skel-text" style="flex:1"></div></div>
+              </div>
+              <div id="caller-progress-pagination"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALL LEADS (with Campaign + Status Tabs) -->
+      <div class="view" id="view-all-leads" style="gap:0">
+        <!-- Campaign Tabs -->
+        <div class="campaign-tabs-wrap">
+          <div class="campaign-tabs-bar" id="campaign-tabs-bar">
+            <div class="skel-row" style="width:100%;padding:12px 0"><div class="skeleton skel-badge" style="width:160px"></div><div class="skeleton skel-badge" style="width:140px;margin-left:8px"></div></div>
+          </div>
+        </div>
+        <!-- Campaign Info Row -->
+        <div class="campaign-info-row" id="campaign-info-row">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+          <span class="campaign-industry-tag" id="campaign-industry-label" style="font-size:12px;color:var(--text-muted)">Loading…</span>
+          <div class="campaign-info-row-right">
+            <button class="btn-sm btn-ghost" onclick="openCampaignPanel()" id="btn-campaign-info">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Campaign Info
+            </button>
+          </div>
+        </div>
+        <!-- Status Tabs -->
+        <div class="status-tabs-bar" id="status-tabs-bar">
+          <button class="status-tab active" data-status="all" onclick="setStatusTab('all')">All <span class="status-tab-count" id="stab-all">–</span></button>
+          <button class="status-tab" data-status="not_called" onclick="setStatusTab('not_called')">Not Called <span class="status-tab-count" id="stab-not-called">–</span></button>
+          <button class="status-tab" data-status="called" onclick="setStatusTab('called')">Called <span class="status-tab-count" id="stab-called">–</span></button>
+          <button class="status-tab" data-status="follow_up" onclick="setStatusTab('follow_up')">Follow Up <span class="status-tab-count" id="stab-follow-up">–</span></button>
+          <button class="status-tab" data-status="interested" onclick="setStatusTab('interested')">⭐ Interested <span class="status-tab-count" id="stab-interested">–</span></button>
+          <button class="status-tab" data-status="onboard" onclick="setStatusTab('onboard')">🚀 Onboard <span class="status-tab-count" id="stab-onboard">–</span></button>
+        </div>
+        <!-- Filter + Table -->
+        <div class="view-body">
+          <div class="filter-bar">
+            <div class="search-wrap">
+              <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input class="search-input" id="search-leads" type="search" placeholder="Search by name, phone, website…" oninput="debounceFilter()"/>
+            </div>
+            <select class="filter-select admin-only" id="filter-caller" onchange="applyFilters()">
+              <option value="">All Callers</option>
+            </select>
+            <select class="filter-select" id="filter-service" onchange="applyFilters()">
+              <option value="">All Services</option>
+              <option value="New Website">New Website</option>
+              <option value="Website Redesign">Redesign</option>
+              <option value="SEO">SEO</option>
+              <option value="SMO">SMO</option>
+              <option value="Technical SEO">Technical SEO</option>
+            </select>
+            <select class="filter-select" id="filter-severity" onchange="applyFilters()">
+              <option value="">All Severity</option>
+              <option value="critical">Critical (9-10)</option>
+              <option value="high">High (7-8)</option>
+              <option value="medium">Medium (5-6)</option>
+              <option value="low">Low (1-4)</option>
+            </select>
+            <select class="filter-select" id="sort-leads" onchange="applyFilters()">
+              <option value="num-asc">Lead # ↑</option>
+              <option value="sev-desc">Severity ↓</option>
+              <option value="name-asc">Name A-Z</option>
+              <option value="date-desc">Newest First</option>
+            </select>
+            <button class="btn-sm btn-ghost" onclick="clearFilters()">Clear</button>
+            <div class="results-count" id="results-count"></div>
+          </div>
+          <div class="table-wrapper">
+            <div class="table-scroll" id="leads-table-scroll">
+              <table id="leads-table">
+                <thead><tr>
+                  <th class="th-no-sort">#</th>
+                  <th>Business Name</th>
+                  <th class="th-no-sort">Phone</th>
+                  <th class="col-date th-no-sort">Date Added</th>
+                  <th class="th-no-sort">Status</th>
+                  <th class="col-caller admin-only th-no-sort">Assigned Caller</th>
+                  <th class="col-sev th-no-sort">Severity</th>
+                  <th class="th-no-sort">Actions</th>
+                </tr></thead>
+                <tbody id="leads-tbody">
+                  <tr><td colspan="8"><div class="skel-row"><div class="skeleton skel-avatar"></div><div class="skeleton skel-text" style="flex:1"></div><div class="skeleton skel-badge"></div><div class="skeleton skel-badge"></div></div></td></tr>
+                  <tr><td colspan="8"><div class="skel-row"><div class="skeleton skel-avatar"></div><div class="skeleton skel-text" style="flex:1"></div><div class="skeleton skel-badge"></div><div class="skeleton skel-badge"></div></div></td></tr>
+                  <tr><td colspan="8"><div class="skel-row"><div class="skeleton skel-avatar"></div><div class="skeleton skel-text" style="flex:1"></div><div class="skeleton skel-badge"></div><div class="skeleton skel-badge"></div></div></td></tr>
+                  <tr><td colspan="8"><div class="skel-row"><div class="skeleton skel-avatar"></div><div class="skeleton skel-text" style="flex:1"></div><div class="skeleton skel-badge"></div><div class="skeleton skel-badge"></div></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pagination-bar">
+              <div class="page-info-text" id="page-info-text">Loading…</div>
+              <div class="pagination" id="pagination"></div>
+              <select class="page-size-select" id="page-size-select" onchange="changePageSize(this.value)">
+                <option value="20" selected>20 / page</option>
+                <option value="50">50 / page</option>
+                <option value="100">100 / page</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MY LEADS -->
+      <div class="view" id="view-my-leads" style="gap:0">
+        <div class="campaign-tabs-wrap">
+          <div class="campaign-tabs-bar" id="my-campaign-tabs-bar"></div>
+        </div>
+        <div class="status-tabs-bar" id="my-status-tabs-bar">
+          <button class="status-tab active" data-status="all" onclick="setMyStatusTab('all')">All <span class="status-tab-count" id="my-stab-all">–</span></button>
+          <button class="status-tab" data-status="not_called" onclick="setMyStatusTab('not_called')">Not Called <span class="status-tab-count" id="my-stab-not-called">–</span></button>
+          <button class="status-tab" data-status="called" onclick="setMyStatusTab('called')">Called <span class="status-tab-count" id="my-stab-called">–</span></button>
+          <button class="status-tab" data-status="follow_up" onclick="setMyStatusTab('follow_up')">Follow Up <span class="status-tab-count" id="my-stab-follow-up">–</span></button>
+          <button class="status-tab" data-status="interested" onclick="setMyStatusTab('interested')">⭐ Interested <span class="status-tab-count" id="my-stab-interested">–</span></button>
+          <button class="status-tab" data-status="onboard" onclick="setMyStatusTab('onboard')">🚀 Onboard <span class="status-tab-count" id="my-stab-onboard">–</span></button>
+        </div>
+        <div class="view-body">
+          <div class="filter-bar">
+            <div class="search-wrap">
+              <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input class="search-input" id="search-my-leads" type="search" placeholder="Search my leads…" oninput="applyMyFilters()"/>
+            </div>
+            <div class="results-count" id="my-results-count"></div>
+          </div>
+          <div class="table-wrapper">
+            <div class="table-scroll">
+              <table id="my-leads-table">
+                <thead><tr>
+                  <th class="th-no-sort">#</th><th>Business</th><th class="th-no-sort">Phone</th>
+                  <th class="col-date th-no-sort">Added</th><th class="th-no-sort">Status</th>
+                  <th class="col-sev th-no-sort">Severity</th><th class="th-no-sort">Actions</th>
+                </tr></thead>
+                <tbody id="my-leads-tbody"></tbody>
+              </table>
+            </div>
+            <div class="pagination-bar">
+              <div class="page-info-text" id="my-page-info-text"></div>
+              <div class="pagination" id="my-pagination"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CAMPAIGNS VIEW (Admin) -->
+      <div class="view" id="view-campaigns">
+        <div class="view-header">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div><div class="view-title">Campaigns</div><div class="view-sub">Manage outreach campaigns</div></div>
+            <button class="btn-sm btn-primary" onclick="openCreateCampaignModal()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              New Campaign
+            </button>
+          </div>
+        </div>
+        <div class="view-body">
+          <div class="table-wrapper">
+            <div class="table-scroll">
+              <table>
+                <thead><tr>
+                  <th class="th-no-sort">Campaign</th><th class="th-no-sort">Industry</th>
+                  <th class="th-no-sort">Date</th><th class="th-no-sort">Leads</th>
+                  <th class="th-no-sort">Called</th><th class="th-no-sort">Follow Up</th>
+                  <th class="th-no-sort">Progress</th><th class="th-no-sort">Actions</th>
+                </tr></thead>
+                <tbody id="campaigns-tbody">
+                  <tr><td colspan="8"><div class="skel-row"><div class="skeleton skel-avatar"></div><div class="skeleton skel-text" style="flex:1"></div><div class="skeleton skel-badge"></div></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CALLERS VIEW -->
+      <div class="view" id="view-callers">
+        <div class="view-header">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div><div class="view-title">Callers</div><div class="view-sub">Manage your outreach team</div></div>
+            <button class="btn-sm btn-primary" onclick="openCallerModal()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Caller
+            </button>
+          </div>
+        </div>
+        <div class="view-body">
+          <div class="table-wrapper">
+            <div class="table-scroll">
+              <table class="callers-table">
+                <thead><tr>
+                  <th class="th-no-sort">Caller</th><th class="th-no-sort">Username</th><th class="th-no-sort">Password</th>
+                  <th class="th-no-sort">Assigned</th><th class="th-no-sort">Called</th><th class="th-no-sort">Follow Up</th>
+                  <th class="th-no-sort">Status</th><th class="th-no-sort">Actions</th>
+                </tr></thead>
+                <tbody id="callers-tbody">
+                  <tr><td colspan="8"><div class="skel-row"><div class="skeleton skel-avatar"></div><div class="skeleton skel-text" style="flex:1"></div><div class="skeleton skel-badge"></div></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- LEAD DRAWER -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer(event)">
+  <div class="drawer" id="lead-drawer" onclick="event.stopPropagation()">
+    <div class="drawer-top">
+      <div class="drawer-lead-num" id="d-num">001</div>
+      <div style="flex:1">
+        <div class="drawer-lead-name" id="d-name">Business</div>
+        <div style="display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap">
+          <span id="d-sev-badge" class="badge badge-red">CRITICAL</span>
+          <span id="d-site-badge" class="badge badge-neutral"></span>
+          <span id="d-new-badge" class="badge badge-blue dot-badge" style="display:none">New Today</span>
+        </div>
+      </div>
+      <button class="drawer-close" onclick="closeDrawer()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="drawer-body">
+      <div class="drawer-section">
+        <div class="drawer-section-title">Contact Info</div>
+        <div class="quick-links">
+          <div class="quick-link">
+            <svg class="quick-link-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012.18 1h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.91 8.09a16 16 0 006 6l1.45-1.45a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92z"/></svg>
+            <a id="d-phone-link" href="#">–</a>
+            <button class="copy-mini-btn" id="d-copy-phone" onclick="copyText(document.getElementById('d-phone-text').textContent,this)" title="Copy">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </button>
+            <span id="d-phone-text" style="display:none"></span>
+          </div>
+          <div class="quick-link" id="d-website-row">
+            <svg class="quick-link-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+            <a id="d-website-link" href="" target="_blank" rel="noopener">–</a>
+            <button class="copy-mini-btn" onclick="copyText(document.getElementById('d-website-link').href,this)" title="Copy URL">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </button>
+          </div>
+          <div class="quick-link">
+            <svg class="quick-link-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span id="d-date" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-secondary);flex:1">–</span>
+          </div>
+        </div>
+      </div>
+      <div class="drawer-section">
+        <div class="drawer-section-title">Call Status</div>
+        <div class="status-buttons" style="flex-wrap:wrap">
+          <button class="status-btn" id="sbtn-not-called" onclick="setDrawerStatus('not_called')" style="min-width:90px">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>Not Called
+          </button>
+          <button class="status-btn" id="sbtn-called" onclick="setDrawerStatus('called')" style="min-width:90px">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Called
+          </button>
+          <button class="status-btn" id="sbtn-follow-up" onclick="setDrawerStatus('follow_up')" style="min-width:90px">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Follow Up
+          </button>
+          <button class="status-btn" id="sbtn-interested" onclick="setDrawerStatus('interested')" style="min-width:90px">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Interested
+          </button>
+          <button class="status-btn" id="sbtn-onboard" onclick="setDrawerStatus('onboard')" style="min-width:90px">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Onboard
+          </button>
+        </div>
+        <div class="caller-assign-wrap admin-only" style="margin-top:12px">
+          <label>Assigned:</label>
+          <select class="caller-assign-select" id="drawer-caller-select" onchange="assignCaller(this.value)">
+            <option value="">Unassigned</option>
+          </select>
+        </div>
+      </div>
+      <div class="drawer-section">
+        <div class="drawer-section-title">Call Notes</div>
+        <textarea class="notes-textarea" id="d-notes" placeholder="Type notes here… objections, interest, follow-up date…" onblur="saveNotes()" oninput="updateNotesCount()"></textarea>
+        <div class="notes-meta"><span id="d-notes-status">Auto-saved</span><span id="d-notes-count">0 / 1000</span></div>
+      </div>
+      <div class="drawer-section">
+        <div class="drawer-section-title">Recommended Services</div>
+        <div class="service-tags" id="d-services"></div>
+      </div>
+      <div class="drawer-section">
+        <div class="drawer-section-title">Audit Issues (<span id="d-issues-count">0</span>)</div>
+        <div class="issues-list" id="d-issues"></div>
+      </div>
+      <div class="drawer-section">
+        <div class="drawer-section-title">Pitch Script</div>
+        <div class="pitch-block">
+          <button class="pitch-copy-btn" id="pitch-copy-btn" onclick="copyPitch()">Copy 📋</button>
+          <div class="pitch-text" id="d-pitch">–</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CAMPAIGN INFO PANEL -->
+<div class="cpanel-overlay" id="cpanel-overlay" onclick="closeCampaignPanel(event)">
+  <div class="cpanel" onclick="event.stopPropagation()">
+    <div class="cpanel-top">
+      <div class="cpanel-title">📋 Campaign Info</div>
+      <button class="drawer-close" onclick="closeCampaignPanel()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="cpanel-body">
+      <div class="cpanel-section">
+        <div class="cpanel-section-title">Campaign Details</div>
+        <div class="cpanel-field">
+          <div class="cpanel-label">Campaign Name</div>
+          <input class="cpanel-input" id="cp-name" type="text" placeholder="Campaign Name"/>
+        </div>
+        <div class="cpanel-field">
+          <div class="cpanel-label">Industry</div>
+          <input class="cpanel-input" id="cp-industry" type="text" placeholder="e.g. Auto Detailing"/>
+        </div>
+      </div>
+      <div class="cpanel-section">
+        <div class="cpanel-section-title">Reference Sites</div>
+        <div class="ref-urls-list" id="cp-urls-list"></div>
+        <div class="add-url-wrap admin-only">
+          <input class="add-url-input" id="cp-new-url" type="url" placeholder="https://example.com"/>
+          <button class="btn-sm btn-ghost" onclick="addRefUrl()">+ Add</button>
+        </div>
+      </div>
+      <div class="cpanel-section">
+        <div class="cpanel-section-title">Pitch Guide &amp; Industry Info</div>
+        <textarea class="cpanel-textarea" id="cp-pitch-guide" placeholder="Industry overview, pitch angles, objection handling…" style="min-height:200px"></textarea>
+      </div>
+      <div class="cpanel-section admin-only">
+        <button class="cpanel-save-btn" onclick="saveCampaignPanel()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CALLER MODAL -->
+<div class="modal-overlay" id="caller-modal" onclick="closeCallerModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header"><div class="modal-title" id="caller-modal-title">Add Caller</div><button class="modal-close" onclick="closeCallerModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" type="text" id="caller-name" placeholder="e.g. John Doe"/></div>
+      <div class="form-group"><label class="form-label">Username</label><input class="form-input" type="text" id="caller-username" placeholder="e.g. john123"/></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="text" id="caller-password" placeholder="e.g. SecurePass@1"/></div>
+      <div id="caller-modal-error" class="login-error"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm btn-ghost" onclick="closeCallerModal()">Cancel</button>
+      <button class="btn-sm btn-primary" id="caller-modal-submit" onclick="submitCaller()">Add Caller</button>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE CAMPAIGN MODAL -->
+<div class="modal-overlay" id="campaign-modal" onclick="closeCampaignModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header"><div class="modal-title">New Campaign</div><button class="modal-close" onclick="closeCampaignModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Campaign Name *</label><input class="form-input" type="text" id="nc-name" placeholder="e.g. Restaurant Outreach Campaign"/></div>
+      <div class="form-group"><label class="form-label">Industry</label><input class="form-input" type="text" id="nc-industry" placeholder="e.g. Food & Beverage"/></div>
+      <div class="form-group"><label class="form-label">Pitch Guide (optional)</label><textarea class="form-input" id="nc-pitch" rows="4" placeholder="Industry overview, key pitch angles…" style="resize:vertical"></textarea></div>
+      <div id="campaign-modal-error" class="login-error"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm btn-ghost" onclick="closeCampaignModal()">Cancel</button>
+      <button class="btn-sm btn-primary" onclick="submitCreateCampaign()">Create Campaign</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM / DELETE MODAL -->
+<div class="modal-overlay" id="confirm-modal" onclick="closeConfirmModal(event)">
+  <div class="modal" style="max-width:400px" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title" id="confirm-modal-title">Confirm Delete</div>
+      <button class="modal-close" onclick="closeConfirmModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirm-modal-message" style="font-size:13.5px;color:var(--text-secondary);line-height:1.6;margin:0"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm btn-ghost" onclick="closeConfirmModal()">Cancel</button>
+      <button class="btn-sm" id="confirm-modal-ok" style="background:var(--red);color:#fff;border:none">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/app.js?v=8"></script>
+</body>
+</html>
