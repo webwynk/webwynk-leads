@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link rel="stylesheet" href="assets/style.css?v=13"/>
+  <link rel="stylesheet" href="assets/style.css?v=14"/>
 </head>
 <body>
 
@@ -510,7 +510,20 @@
           <div class="cpanel-section-title" style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--text-dim); margin-bottom:0">Pitch Guide &amp; Industry Info</div>
           <button class="btn-sm btn-ghost" id="cp-pitch-copy-btn" onclick="copyCampaignPitch()" style="padding:4px 8px; font-size:11px">Copy Guide 📋</button>
         </div>
-        <div class="cpanel-pitch-display" id="cp-pitch-guide" placeholder="Type campaign pitch guide and objection handling notes here..."></div>
+        
+        <!-- Admin-only toggle bar to switch between Preview and Edit Text -->
+        <div class="pitch-mode-toggle-bar admin-only" id="pitch-mode-toggle-bar" style="display:none">
+          <button class="pitch-mode-btn active" id="btn-pitch-preview" onclick="togglePitchGuideMode('preview')">👁️ Preview</button>
+          <button class="pitch-mode-btn" id="btn-pitch-edit" onclick="togglePitchGuideMode('edit')">✏️ Edit Text</button>
+        </div>
+
+        <!-- Rendered Beautiful Preview Panel -->
+        <div class="pitch-preview-container" id="cp-pitch-preview"></div>
+
+        <!-- Raw Text Markdown Editor (For Edit Mode) -->
+        <div class="pitch-edit-container" id="cp-pitch-edit" style="display:none; flex:1; flex-direction:column">
+          <textarea class="cpanel-pitch-textarea" id="cp-pitch-textarea" placeholder="Type campaign pitch guide in Markdown format here..."></textarea>
+        </div>
       </div>
       
       <!-- PANE 3: REFERENCE LINKS -->
@@ -585,6 +598,6 @@
   </div>
 </div>
 
-<script src="assets/app.js?v=13"></script>
+<script src="assets/app.js?v=14"></script>
 </body>
 </html>

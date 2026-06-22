@@ -701,7 +701,7 @@ function switchCPanelTab(tabName) {
 }
 
 function copyCampaignPitch() {
-  const guideText = document.getElementById('cp-pitch-guide')?.innerText || '';
+  const guideText = document.getElementById('cp-pitch-textarea')?.value || '';
   navigator.clipboard.writeText(guideText).then(() => {
     const btn = document.getElementById('cp-pitch-copy-btn');
     btn.textContent = '✓ Copied!';
@@ -711,6 +711,210 @@ function copyCampaignPitch() {
       btn.classList.remove('ok');
     }, 2000);
   });
+}
+
+function togglePitchGuideMode(mode) {
+  const isPreview = mode === 'preview';
+  const btnPreview = document.getElementById('btn-pitch-preview');
+  const btnEdit = document.getElementById('btn-pitch-edit');
+  if (btnPreview) btnPreview.classList.toggle('active', isPreview);
+  if (btnEdit) btnEdit.classList.toggle('active', !isPreview);
+  
+  const previewPane = document.getElementById('cp-pitch-preview');
+  const editPane = document.getElementById('cp-pitch-edit');
+  if (previewPane) previewPane.style.display = isPreview ? '' : 'none';
+  if (editPane) editPane.style.display = isPreview ? 'none' : 'flex';
+  
+  // Re-render preview live when switching to it
+  if (isPreview) {
+    const textarea = document.getElementById('cp-pitch-textarea');
+    if (textarea && previewPane) {
+      previewPane.innerHTML = parsePitchGuideMarkdown(textarea.value);
+    }
+  }
+}
+
+function togglePitchQA(id) {
+  const card = document.getElementById(id);
+  if (card) {
+    card.classList.toggle('open');
+  }
+}
+
+function copyTextToClipboard(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const originalText = btn.textContent;
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+// Client-side Markdown-to-HTML Parser for the Pitch Guide
+function parsePitchGuideMarkdown(md) {
+  if (!md) return '<div style="color:var(--text-dim);font-style:italic;padding:8px">No pitch guide added yet.</div>';
+
+  const lines = md.split('\n');
+  let html = '';
+  let inList = false;
+  let listType = null; // 'ul' or 'ol'
+  let inBlockquote = false;
+  let blockquoteText = [];
+
+  function closeList() {
+    if (inList) {
+      html += `</${listType}>`;
+      inList = false;
+      listType = null;
+    }
+  }
+
+  function closeBlockquote() {
+    if (inBlockquote) {
+      const text = blockquoteText.join('\n').trim();
+      
+      // Check if this blockquote belongs to an objection Q&A
+      const objectionMatch = html.match(/<div class="objection-header-pending">([\s\S]*?)<\/div>$/);
+      if (objectionMatch) {
+        const headerText = objectionMatch[1];
+        // Remove the temporary placeholder
+        html = html.replace(/<div class="objection-header-pending">([\s\S]*?)<\/div>$/, '');
+        
+        const uniqueId = 'qa-' + Math.random().toString(36).substring(2, 9);
+        html += `
+          <div class="pitch-qa-card" id="${uniqueId}">
+            <div class="pitch-qa-header" onclick="togglePitchQA('${uniqueId}')">${headerText}</div>
+            <div class="pitch-qa-body">
+              <p>${inlineFormatter(text)}</p>
+              <button class="blockquote-copy-btn" onclick="copyTextToClipboard('${escQuote(text)}', this)">Copy Response 📋</button>
+            </div>
+          </div>
+        `;
+      } else {
+        // Standard Pitch script block
+        html += `
+          <blockquote>
+            <p>${inlineFormatter(text)}</p>
+            <button class="blockquote-copy-btn" onclick="copyTextToClipboard('${escQuote(text)}', this)">Copy Pitch 📋</button>
+          </blockquote>
+        `;
+      }
+      
+      inBlockquote = false;
+      blockquoteText = [];
+    }
+  }
+
+  function escQuote(str) {
+    return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '');
+  }
+
+  function inlineFormatter(text) {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/`(.*?)`/g, '<code class="td-mono" style="font-size:11.5px;background:var(--bg-page);padding:2px 4px;border-radius:3px">$1</code>');
+  }
+
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i].trim();
+
+    if (line === '---' || line === '***' || line === '___') {
+      closeList();
+      closeBlockquote();
+      html += '<hr />';
+      continue;
+    }
+
+    if (line.startsWith('# ')) {
+      closeList();
+      closeBlockquote();
+      html += `<h1>${inlineFormatter(line.substring(2))}</h1>`;
+      continue;
+    }
+    if (line.startsWith('## ')) {
+      closeList();
+      closeBlockquote();
+      html += `<h2>${inlineFormatter(line.substring(3))}</h2>`;
+      continue;
+    }
+    if (line.startsWith('### ')) {
+      closeList();
+      closeBlockquote();
+      html += `<h3>${inlineFormatter(line.substring(4))}</h3>`;
+      continue;
+    }
+
+    if (line.startsWith('>')) {
+      closeList();
+      inBlockquote = true;
+      blockquoteText.push(line.substring(1).trim());
+      continue;
+    }
+
+    closeBlockquote();
+
+    if (line.startsWith('- ') || line.startsWith('* ')) {
+      if (!inList || listType !== 'ul') {
+        closeList();
+        inList = true;
+        listType = 'ul';
+        html += '<ul>';
+      }
+      html += `<li>${inlineFormatter(line.substring(2))}</li>`;
+      continue;
+    }
+
+    const olMatch = line.match(/^(\d+)\.\s(.*)$/);
+    if (olMatch) {
+      if (!inList || listType !== 'ol') {
+        closeList();
+        inList = true;
+        listType = 'ol';
+        html += '<ol>';
+      }
+      html += `<li>${inlineFormatter(olMatch[2])}</li>`;
+      continue;
+    }
+
+    if (line === '') {
+      closeList();
+      continue;
+    }
+
+    closeList();
+
+    // Check if this line looks like an objection question header
+    if (line.startsWith('**') && line.endsWith('**')) {
+      let hasNextBlockquote = false;
+      for (let j = i + 1; j < lines.length; j++) {
+        const nextLine = lines[j].trim();
+        if (nextLine === '') continue;
+        if (nextLine.startsWith('>')) {
+          hasNextBlockquote = true;
+        }
+        break;
+      }
+      if (hasNextBlockquote) {
+        const headerText = line.replace(/^\*\*/, '').replace(/\*\*$/, '');
+        html += `<div class="objection-header-pending">${inlineFormatter(headerText)}</div>`;
+        continue;
+      }
+    }
+
+    html += `<p>${inlineFormatter(line)}</p>`;
+  }
+
+  closeList();
+  closeBlockquote();
+
+  return html;
 }
 
 function openCampaignPanel(){
@@ -725,12 +929,25 @@ function openCampaignPanel(){
   document.getElementById('cp-industry').value=c.industry||'';
   document.getElementById('cp-industry').readOnly=!isAdmin;
   
-  const guideEl = document.getElementById('cp-pitch-guide');
-  if (guideEl) {
-    guideEl.innerText = c.pitch_guide || '';
-    guideEl.contentEditable = isAdmin ? "true" : "false";
-    guideEl.style.cursor = isAdmin ? "text" : "default";
+  // Set raw pitch guide in the edit textarea
+  const textarea = document.getElementById('cp-pitch-textarea');
+  if (textarea) {
+    textarea.value = c.pitch_guide || '';
   }
+  
+  // Render formatted pitch guide preview
+  const previewEl = document.getElementById('cp-pitch-preview');
+  if (previewEl) {
+    previewEl.innerHTML = parsePitchGuideMarkdown(c.pitch_guide);
+  }
+  
+  // Show mode toggles only to Admin
+  const toggleBar = document.getElementById('pitch-mode-toggle-bar');
+  if (toggleBar) {
+    toggleBar.style.display = isAdmin ? 'flex' : 'none';
+  }
+  togglePitchGuideMode('preview');
+
   renderRefUrls(c.reference_urls||[]);
 
   // Calculate campaign specific statistics
@@ -748,6 +965,7 @@ function openCampaignPanel(){
   document.getElementById('cpanel-overlay').classList.add('open');
   document.body.style.overflow='hidden';
 }
+
 function closeCampaignPanel(e){
   if(e&&e.target!==document.getElementById('cpanel-overlay'))return;
   document.getElementById('cpanel-overlay').classList.remove('open');
@@ -786,7 +1004,7 @@ async function saveCampaignPanel(){
   if(!c)return;
   const name=document.getElementById('cp-name').value.trim();
   const industry=document.getElementById('cp-industry').value.trim();
-  const pitch_guide=document.getElementById('cp-pitch-guide')?.innerText || '';
+  const pitch_guide=document.getElementById('cp-pitch-textarea')?.value || '';
   if(!name){showToast('Campaign name is required','error');return;}
   try{
     await db.from('campaigns').update({name,industry,pitch_guide,reference_urls:c.reference_urls||[]}).eq('id',c.id);
