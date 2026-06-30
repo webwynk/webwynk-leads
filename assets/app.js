@@ -69,11 +69,11 @@ async function handleLogin(){
     if(isAdmin){
       const{data,error}=await db.from('callers').select('*').eq('username',username).eq('password',password).eq('role','admin').eq('is_active',true).maybeSingle();
       if(error||!data)showLoginError('Invalid admin credentials.');
-      else{session={role:'admin',id:data.id,name:data.name,username:data.username};saveSession();await initApp();showScreen('app');}
+      else{session={role:'admin',id:data.id,name:data.name,username:data.username};saveSession();await initApp();showScreen('app');navigateFromHash();}
     } else {
       const{data,error}=await db.from('callers').select('*').eq('username',username).eq('password',password).eq('role','caller').eq('is_active',true).maybeSingle();
       if(error||!data)showLoginError('Invalid credentials or account inactive.');
-      else{session={role:'caller',id:data.id,name:data.name,username:data.username};saveSession();await initApp();showScreen('app');}
+      else{session={role:'caller',id:data.id,name:data.name,username:data.username};saveSession();await initApp();showScreen('app');navigateFromHash();}
     }
   }catch(e){console.error('Login error details:',e);showLoginError('Connection error. Please try again.');}
   finally{setLoginLoading(false);}
