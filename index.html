@@ -196,6 +196,8 @@
           <button class="status-tab active" data-status="all" onclick="setStatusTab('all')">All <span class="status-tab-count" id="stab-all">–</span></button>
           <button class="status-tab" data-status="not_called" onclick="setStatusTab('not_called')">Not Called <span class="status-tab-count" id="stab-not-called">–</span></button>
           <button class="status-tab" data-status="called" onclick="setStatusTab('called')">Called <span class="status-tab-count" id="stab-called">–</span></button>
+          <button class="status-tab" data-status="voicemail" onclick="setStatusTab('voicemail')">Voicemail <span class="status-tab-count" id="stab-voicemail">–</span></button>
+          <button class="status-tab" data-status="not_respond" onclick="setStatusTab('not_respond')">Not Respond <span class="status-tab-count" id="stab-not-respond">–</span></button>
           <button class="status-tab" data-status="follow_up" onclick="setStatusTab('follow_up')">Follow Up <span class="status-tab-count" id="stab-follow-up">–</span></button>
           <button class="status-tab" data-status="interested" onclick="setStatusTab('interested')">⭐ Interested <span class="status-tab-count" id="stab-interested">–</span></button>
           <button class="status-tab" data-status="onboard" onclick="setStatusTab('onboard')">🚀 Onboard <span class="status-tab-count" id="stab-onboard">–</span></button>
@@ -277,6 +279,8 @@
           <button class="status-tab active" data-status="all" onclick="setMyStatusTab('all')">All <span class="status-tab-count" id="my-stab-all">–</span></button>
           <button class="status-tab" data-status="not_called" onclick="setMyStatusTab('not_called')">Not Called <span class="status-tab-count" id="my-stab-not-called">–</span></button>
           <button class="status-tab" data-status="called" onclick="setMyStatusTab('called')">Called <span class="status-tab-count" id="my-stab-called">–</span></button>
+          <button class="status-tab" data-status="voicemail" onclick="setMyStatusTab('voicemail')">Voicemail <span class="status-tab-count" id="my-stab-voicemail">–</span></button>
+          <button class="status-tab" data-status="not_respond" onclick="setMyStatusTab('not_respond')">Not Respond <span class="status-tab-count" id="my-stab-not-respond">–</span></button>
           <button class="status-tab" data-status="follow_up" onclick="setMyStatusTab('follow_up')">Follow Up <span class="status-tab-count" id="my-stab-follow-up">–</span></button>
           <button class="status-tab" data-status="interested" onclick="setMyStatusTab('interested')">⭐ Interested <span class="status-tab-count" id="my-stab-interested">–</span></button>
           <button class="status-tab" data-status="onboard" onclick="setMyStatusTab('onboard')">🚀 Onboard <span class="status-tab-count" id="my-stab-onboard">–</span></button>
@@ -421,6 +425,12 @@
           </button>
           <button class="status-btn" id="sbtn-called" onclick="setDrawerStatus('called')" style="min-width:90px">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Called
+          </button>
+          <button class="status-btn" id="sbtn-voicemail" onclick="setDrawerStatus('voicemail')" style="min-width:90px">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="11.5" r="4.5"/><circle cx="18.5" cy="11.5" r="4.5"/><line x1="5.5" y1="16" x2="18.5" y2="16"/></svg>Voicemail
+          </button>
+          <button class="status-btn" id="sbtn-not-respond" onclick="setDrawerStatus('not_respond')" style="min-width:90px">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>Not Respond
           </button>
           <button class="status-btn" id="sbtn-follow-up" onclick="setDrawerStatus('follow_up')" style="min-width:90px">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Follow Up

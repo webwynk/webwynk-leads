@@ -261,13 +261,17 @@ function updateStatusTabCounts(){
   const cLeads=allLeads.filter(l=>l.campaign_id===currentCampaignId);
   const total=cLeads.length;
   const called=cLeads.filter(l=>(allStatuses[l.id]?.status||'not_called')==='called').length;
+  const voicemail=cLeads.filter(l=>(allStatuses[l.id]?.status||'not_called')==='voicemail').length;
+  const notRespond=cLeads.filter(l=>(allStatuses[l.id]?.status||'not_called')==='not_respond').length;
   const fu=cLeads.filter(l=>(allStatuses[l.id]?.status||'not_called')==='follow_up').length;
   const interested=cLeads.filter(l=>(allStatuses[l.id]?.status||'not_called')==='interested').length;
   const onboard=cLeads.filter(l=>(allStatuses[l.id]?.status||'not_called')==='onboard').length;
-  const nc=total-called-fu-interested-onboard;
+  const nc=total-called-voicemail-notRespond-fu-interested-onboard;
   document.getElementById('stab-all').textContent=total;
   document.getElementById('stab-not-called').textContent=nc;
   document.getElementById('stab-called').textContent=called;
+  const sv=document.getElementById('stab-voicemail');if(sv)sv.textContent=voicemail;
+  const snr=document.getElementById('stab-not-respond');if(snr)snr.textContent=notRespond;
   document.getElementById('stab-follow-up').textContent=fu;
   const si=document.getElementById('stab-interested');if(si)si.textContent=interested;
   const so=document.getElementById('stab-onboard');if(so)so.textContent=onboard;
@@ -278,13 +282,17 @@ function updateMyStatusTabCounts(){
   const cLeads=allLeads.filter(l=>l.campaign_id===myCurrentCampaignId&&allStatuses[l.id]?.caller_id===session.id);
   const total=cLeads.length;
   const called=cLeads.filter(l=>(allStatuses[l.id]?.status||'not_called')==='called').length;
+  const voicemail=cLeads.filter(l=>(allStatuses[l.id]?.status||'not_called')==='voicemail').length;
+  const notRespond=cLeads.filter(l=>(allStatuses[l.id]?.status||'not_called')==='not_respond').length;
   const fu=cLeads.filter(l=>(allStatuses[l.id]?.status||'not_called')==='follow_up').length;
   const interested=cLeads.filter(l=>(allStatuses[l.id]?.status||'not_called')==='interested').length;
   const onboard=cLeads.filter(l=>(allStatuses[l.id]?.status||'not_called')==='onboard').length;
-  const nc=total-called-fu-interested-onboard;
+  const nc=total-called-voicemail-notRespond-fu-interested-onboard;
   document.getElementById('my-stab-all').textContent=total;
   document.getElementById('my-stab-not-called').textContent=nc;
   document.getElementById('my-stab-called').textContent=called;
+  const sv=document.getElementById('my-stab-voicemail');if(sv)sv.textContent=voicemail;
+  const snr=document.getElementById('my-stab-not-respond');if(snr)snr.textContent=notRespond;
   document.getElementById('my-stab-follow-up').textContent=fu;
   const si=document.getElementById('my-stab-interested');if(si)si.textContent=interested;
   const so=document.getElementById('my-stab-onboard');if(so)so.textContent=onboard;
@@ -360,7 +368,7 @@ function renderLeadsTable(){
       const ls=allStatuses[lead.id]||{};
       const status=ls.status||'not_called';
       const isNew=lead.added_date===today;
-      const rowClass=status==='called'?'row-called':status==='follow_up'?'row-followup':status==='interested'?'row-interested':status==='onboard'?'row-onboard':isNew?'row-new':'';
+      const rowClass=status==='called'?'row-called':status==='voicemail'?'row-voicemail':status==='not_respond'?'row-notrespond':status==='follow_up'?'row-followup':status==='interested'?'row-interested':status==='onboard'?'row-onboard':isNew?'row-new':'';
       return `<tr class="${rowClass}" id="lead-row-${lead.id}" onclick="openDrawer(${lead.id})">
         <td class="td-mono">${String(lead.lead_num).padStart(3,'0')}</td>
         <td><div class="td-name" title="${esc(lead.name)}">${esc(lead.name)}</div></td>
@@ -410,7 +418,7 @@ function renderMyLeadsTable(){
   } else {
     tbody.innerHTML=myLeadsFiltered.slice(start,end).map(lead=>{
       const ls=allStatuses[lead.id]||{};const status=ls.status||'not_called';const isNew=lead.added_date===today;
-      const rc=status==='called'?'row-called':status==='follow_up'?'row-followup':status==='interested'?'row-interested':status==='onboard'?'row-onboard':isNew?'row-new':'';
+      const rc=status==='called'?'row-called':status==='voicemail'?'row-voicemail':status==='not_respond'?'row-notrespond':status==='follow_up'?'row-followup':status==='interested'?'row-interested':status==='onboard'?'row-onboard':isNew?'row-new':'';
       return `<tr class="${rc}" id="my-row-${lead.id}" onclick="openDrawer(${lead.id})">
         <td class="td-mono">${String(lead.lead_num).padStart(3,'0')}</td>
         <td><div class="td-name">${esc(lead.name)}</div></td>
@@ -524,16 +532,18 @@ function closeDrawer(e){
 function updateDrawerStatusButtons(status){
   const map={
     'not_called':'sbtn-not-called','called':'sbtn-called',
+    'voicemail':'sbtn-voicemail','not_respond':'sbtn-not-respond',
     'follow_up':'sbtn-follow-up','interested':'sbtn-interested','onboard':'sbtn-onboard'
   };
   const classMap={
     'not_called':'active-not-called','called':'active-called',
+    'voicemail':'active-voicemail','not_respond':'active-not-respond',
     'follow_up':'active-follow-up','interested':'active-interested','onboard':'active-onboard'
   };
-  ['not_called','called','follow_up','interested','onboard'].forEach(s=>{
+  ['not_called','called','voicemail','not_respond','follow_up','interested','onboard'].forEach(s=>{
     const btn=document.getElementById(map[s]);
     if(!btn)return;
-    btn.classList.remove('active-not-called','active-called','active-follow-up','active-interested','active-onboard');
+    btn.classList.remove('active-not-called','active-called','active-voicemail','active-not-respond','active-follow-up','active-interested','active-onboard');
     if(s===status)btn.classList.add(classMap[s]);
   });
 }
@@ -586,6 +596,8 @@ function animateRowMove(leadId,newStatus){
 
   const flashColors={
     called:    'rgba(22,163,74,.18)',
+    voicemail: 'rgba(79,110,247,.18)',
+    not_respond:'rgba(234,88,12,.18)',
     follow_up: 'rgba(180,83,9,.18)',
     interested:'rgba(147,51,234,.18)',
     onboard:   'rgba(13,148,136,.18)',
@@ -1244,15 +1256,19 @@ function loadDashboard(){
   });
 
   const called=sList.filter(s=>s.status==='called').length;
+  const voicemail=sList.filter(s=>s.status==='voicemail').length;
+  const notRespond=sList.filter(s=>s.status==='not_respond').length;
   const fu=sList.filter(s=>s.status==='follow_up').length;
   const interested=sList.filter(s=>s.status==='interested').length;
   const onboard=sList.filter(s=>s.status==='onboard').length;
-  const nc=total-called-fu-interested-onboard;
+  const nc=total-called-voicemail-notRespond-fu-interested-onboard;
 
   document.getElementById('stats-grid').innerHTML=`
     <div class="stat-card fade-in-el"><div class="stat-label">Total Leads</div><div class="stat-value c-accent">${total}</div><div class="stat-delta">${campaignFilter==='all'?allCampaigns.length:1} campaign${campaignFilter==='all'&&allCampaigns.length!==1?'s':''}</div></div>
     <div class="stat-card fade-in-el"><div class="stat-label">Not Called</div><div class="stat-value">${nc}</div><div class="stat-delta">${total>0?Math.round(nc/total*100):0}% remaining</div></div>
     <div class="stat-card fade-in-el"><div class="stat-label">Called</div><div class="stat-value c-green">${called}</div><div class="stat-delta">${total>0?Math.round(called/total*100):0}% complete</div></div>
+    <div class="stat-card fade-in-el"><div class="stat-label">Voicemail</div><div class="stat-value c-accent">${voicemail}</div><div class="stat-delta">${total>0?Math.round(voicemail/total*100):0}% left message</div></div>
+    <div class="stat-card fade-in-el"><div class="stat-label">Not Respond</div><div class="stat-value c-orange">${notRespond}</div><div class="stat-delta">${total>0?Math.round(notRespond/total*100):0}% no response</div></div>
     <div class="stat-card fade-in-el"><div class="stat-label">Follow Up</div><div class="stat-value c-yellow">${fu}</div><div class="stat-delta">Needs callback</div></div>
     <div class="stat-card fade-in-el"><div class="stat-label">⭐ Interested</div><div class="stat-value c-purple">${interested}</div><div class="stat-delta">${total>0?Math.round(interested/total*100):0}% warm leads</div></div>
     <div class="stat-card fade-in-el"><div class="stat-label">🚀 Onboard</div><div class="stat-value c-teal">${onboard}</div><div class="stat-delta">Converted clients</div></div>
@@ -1289,6 +1305,8 @@ function loadDashboard(){
       const callerName=s.callers?.name||'Unknown';
       const statusMeta={
         called:{label:'called',color:'var(--green)'},
+        voicemail:{label:'left voicemail for',color:'var(--accent)'},
+        not_respond:{label:'marked not responding for',color:'var(--orange)'},
         follow_up:{label:'marked follow-up on',color:'var(--yellow)'},
         interested:{label:'marked interested in',color:'var(--purple)'},
         onboard:{label:'onboarded',color:'var(--teal)'}
@@ -1348,6 +1366,8 @@ function loadDashboard(){
         }
 
         const cc=callerLeads.filter(s=>s.status==='called').length;
+        const voicemail=callerLeads.filter(s=>s.status==='voicemail').length;
+        const notRespond=callerLeads.filter(s=>s.status==='not_respond').length;
         const fu=callerLeads.filter(s=>s.status==='follow_up').length;
         const interested=callerLeads.filter(s=>s.status==='interested').length;
         const onboard=callerLeads.filter(s=>s.status==='onboard').length;
@@ -1365,7 +1385,7 @@ function loadDashboard(){
                 <span class="caller-progress-campaign" title="${esc(activeCampText)}">${esc(activeCampText)}</span>
               </div>
               <div class="caller-progress-stats">
-                Called: <b style="color:var(--green)">${cc}</b> &nbsp; Follow Up: <b style="color:var(--yellow)">${fu}</b> &nbsp; Interested: <b style="color:var(--purple)">${interested}</b> &nbsp; Onboard: <b style="color:var(--teal)">${onboard}</b>
+                Called: <b style="color:var(--green)">${cc}</b> &nbsp; Voicemail: <b style="color:var(--accent)">${voicemail}</b> &nbsp; Not Respond: <b style="color:var(--orange)">${notRespond}</b> &nbsp; Follow Up: <b style="color:var(--yellow)">${fu}</b> &nbsp; Interested: <b style="color:var(--purple)">${interested}</b> &nbsp; Onboard: <b style="color:var(--teal)">${onboard}</b>
               </div>
               <div class="caller-progress-meta">
                 Period: <strong>${datePeriodLabel}</strong>
@@ -1394,6 +1414,8 @@ function loadDashboard(){
     }
     
     const cc = filteredTodayStatuses.filter(s => s.status === 'called').length;
+    const voicemail = filteredTodayStatuses.filter(s => s.status === 'voicemail').length;
+    const notRespond = filteredTodayStatuses.filter(s => s.status === 'not_respond').length;
     const fu = filteredTodayStatuses.filter(s => s.status === 'follow_up').length;
     const interested = filteredTodayStatuses.filter(s => s.status === 'interested').length;
     const onboard = filteredTodayStatuses.filter(s => s.status === 'onboard').length;
@@ -1412,6 +1434,14 @@ function loadDashboard(){
           <div class="stat-card-mini" style="background:var(--green-subtle); border:1px solid var(--green-border); padding:12px; border-radius:var(--radius-sm); display:flex; flex-direction:column">
             <div style="font-size:10px; font-weight:600; text-transform:uppercase; color:var(--green); letter-spacing:.02em">Called</div>
             <div style="font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:700; color:var(--green); margin-top:4px">${cc}</div>
+          </div>
+          <div class="stat-card-mini" style="background:var(--accent-subtle); border:1px solid var(--accent-border); padding:12px; border-radius:var(--radius-sm); display:flex; flex-direction:column">
+            <div style="font-size:10px; font-weight:600; text-transform:uppercase; color:var(--accent); letter-spacing:.02em">Voicemail</div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:700; color:var(--accent); margin-top:4px">${voicemail}</div>
+          </div>
+          <div class="stat-card-mini" style="background:var(--orange-subtle); border:1px solid var(--orange-border); padding:12px; border-radius:var(--radius-sm); display:flex; flex-direction:column">
+            <div style="font-size:10px; font-weight:600; text-transform:uppercase; color:var(--orange); letter-spacing:.02em">Not Respond</div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:700; color:var(--orange); margin-top:4px">${notRespond}</div>
           </div>
           <div class="stat-card-mini" style="background:var(--yellow-subtle); border:1px solid var(--yellow-border); padding:12px; border-radius:var(--radius-sm); display:flex; flex-direction:column">
             <div style="font-size:10px; font-weight:600; text-transform:uppercase; color:var(--yellow); letter-spacing:.02em">Follow Up</div>
@@ -1454,6 +1484,8 @@ function renderDashPagination(containerId,page,total,onPage){
 function statusBadgeHtml(s){const m={
   not_called:'<span class="badge badge-neutral dot-badge">Not Called</span>',
   called:'<span class="badge badge-green dot-badge">Called</span>',
+  voicemail:'<span class="badge badge-blue dot-badge">Voicemail</span>',
+  not_respond:'<span class="badge badge-orange dot-badge">Not Respond</span>',
   follow_up:'<span class="badge badge-yellow dot-badge">Follow Up</span>',
   interested:'<span class="badge badge-purple dot-badge">Interested</span>',
   onboard:'<span class="badge badge-teal dot-badge">Onboard</span>'

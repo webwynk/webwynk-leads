@@ -145,6 +145,8 @@ a{text-decoration:none}
 .status-tab[data-status="all"].active{border-bottom-color:var(--accent)}
 .status-tab[data-status="not_called"].active{border-bottom-color:var(--text-muted)}
 .status-tab[data-status="called"].active{border-bottom-color:var(--green)}
+.status-tab[data-status="voicemail"].active{border-bottom-color:var(--accent)}
+.status-tab[data-status="not_respond"].active{border-bottom-color:var(--orange)}
 .status-tab[data-status="follow_up"].active{border-bottom-color:var(--yellow)}
 .status-tab[data-status="interested"].active{border-bottom-color:var(--purple)}
 .status-tab[data-status="onboard"].active{border-bottom-color:var(--teal)}
@@ -152,6 +154,8 @@ a{text-decoration:none}
 .status-tabs-bar::-webkit-scrollbar{display:none}
 .status-tab-count{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;background:var(--bg-surface-3);color:var(--text-dim);border-radius:var(--radius-full);padding:1px 7px;min-width:22px;text-align:center;transition:all 150ms}
 .status-tab[data-status="called"].active .status-tab-count{background:var(--green-subtle);color:var(--green)}
+.status-tab[data-status="voicemail"].active .status-tab-count{background:var(--accent-subtle);color:var(--accent)}
+.status-tab[data-status="not_respond"].active .status-tab-count{background:var(--orange-subtle);color:var(--orange)}
 .status-tab[data-status="follow_up"].active .status-tab-count{background:var(--yellow-subtle);color:var(--yellow)}
 .status-tab[data-status="all"].active .status-tab-count{background:var(--accent-subtle);color:var(--accent)}
 .status-tab[data-status="interested"].active .status-tab-count{background:var(--purple-subtle);color:var(--purple)}
@@ -163,13 +167,13 @@ a{text-decoration:none}
 .campaign-info-row-right{margin-left:auto;display:flex;gap:8px}
 
 /* ═══════ STATS GRID ═══════ */
-.stats-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
 .stat-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 18px;box-shadow:var(--shadow-xs);transition:box-shadow .2s,transform .2s}
 .stat-card:hover{box-shadow:var(--shadow-sm);transform:translateY(-1px)}
 .stat-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px}
 .stat-value{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;letter-spacing:-1px;color:var(--text-primary);line-height:1}
 .stat-value.c-accent{color:var(--accent)}.stat-value.c-green{color:var(--green)}.stat-value.c-yellow{color:var(--yellow)}
-.stat-value.c-red{color:var(--red)}.stat-value.c-purple{color:var(--purple)}.stat-value.c-teal{color:var(--teal)}
+.stat-value.c-red{color:var(--red)}.stat-value.c-orange{color:var(--orange)}.stat-value.c-purple{color:var(--purple)}.stat-value.c-teal{color:var(--teal)}
 .stat-delta{font-size:11px;color:var(--text-muted);margin-top:6px;font-weight:500}
 
 /* ═══════ FILTER BAR ═══════ */
@@ -197,6 +201,8 @@ th:hover{color:var(--text-primary)}.th-no-sort{cursor:default}
 td{padding:12px 14px;color:var(--text-primary);border-bottom:1px solid var(--border);vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr.row-called td:first-child{box-shadow:inset 3px 0 0 var(--green)}
+tr.row-voicemail td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+tr.row-notrespond td:first-child{box-shadow:inset 3px 0 0 var(--orange)}
 tr.row-followup td:first-child{box-shadow:inset 3px 0 0 var(--yellow)}
 tr.row-interested td:first-child{box-shadow:inset 3px 0 0 var(--purple)}
 tr.row-onboard td:first-child{box-shadow:inset 3px 0 0 var(--teal)}
@@ -265,6 +271,8 @@ tbody tr:hover td{background:var(--bg-surface-2)}
 .status-btn:hover{border-color:var(--accent-border);color:var(--accent)}
 .status-btn.active-not-called{border-color:var(--border-strong);color:var(--text-secondary);background:var(--bg-surface-3)}
 .status-btn.active-called{border-color:var(--green-border);color:var(--green);background:var(--green-subtle)}
+.status-btn.active-voicemail{border-color:var(--accent-border);color:var(--accent);background:var(--accent-subtle)}
+.status-btn.active-not-respond{border-color:var(--orange-border);color:var(--orange);background:var(--orange-subtle)}
 .status-btn.active-follow-up{border-color:var(--yellow-border);color:var(--yellow);background:var(--yellow-subtle)}
 .status-btn.active-interested{border-color:var(--purple-border);color:var(--purple);background:var(--purple-subtle)}
 .status-btn.active-onboard{border-color:var(--teal-border);color:var(--teal);background:var(--teal-subtle)}
