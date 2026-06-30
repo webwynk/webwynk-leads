@@ -608,6 +608,16 @@
   </div>
 </div>
 
+<!-- CONNECTION ERROR OVERLAY -->
+<div id="error-overlay" style="display:none; position:fixed; inset:0; z-index:9999; background:var(--bg-page); display:flex; align-items:center; justify-content:center; padding:20px">
+  <div style="background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:32px; max-width:400px; width:100%; text-align:center; box-shadow:var(--shadow-lg)">
+    <div style="font-size:48px; margin-bottom:16px">🔌</div>
+    <h3 style="font-size:18px; font-weight:700; color:var(--text-primary); margin-bottom:8px">Connection Issue</h3>
+    <p style="font-size:13px; color:var(--text-secondary); line-height:1.6; margin-bottom:24px">We couldn't connect to the CRM database. This is usually caused by a temporary network interruption or blocked connection.</p>
+    <button class="btn-sm btn-primary" onclick="window.location.reload()" style="width:100%; justify-content:center; padding:10px 14px">Retry Connection</button>
+  </div>
+</div>
+
 <script src="assets/app.js?v=14"></script>
 </body>
 </html>

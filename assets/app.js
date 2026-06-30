@@ -3,8 +3,13 @@ const SUPABASE_URL='https://rorpaiigbmhssjosupqw.supabase.co';
 const SUPABASE_KEY='sb_publishable_tfkjoO-gpHWP24kBMTnXog_vU8FHYEm';
 const THEME_KEY='webwynk-theme', SESSION_KEY='webwynk-session';
 
-const {createClient}=supabase;
-const db=createClient(SUPABASE_URL,SUPABASE_KEY);
+let db=null;
+if(typeof supabase!=='undefined'){
+  const {createClient}=supabase;
+  db=createClient(SUPABASE_URL,SUPABASE_KEY);
+}else{
+  console.error('Supabase library is not loaded. Check network connection.');
+}
 
 /* ═══ STATE ═══ */
 let session=null, allLeads=[], allStatuses={}, allCallers=[], allCampaigns=[];
@@ -1555,27 +1560,43 @@ function showToast(msg,type='info'){
 
 /* ═══ INIT ═══ */
 (function init(){
-  const saved=loadSession();
-  if(saved){
-    session=saved;
-    showScreen('app');
-    // Eagerly switch to correct view skeleton BEFORE data loads
-    // so refresh shows the right skeleton (not always Dashboard)
-    const hash=window.location.hash||'';
-    const match=hash.match(/^#\/(.+)$/);
-    const eagerView=match&&VALID_VIEWS.includes(match[1])?match[1]:'dashboard';
-    document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
-    const vEl=document.getElementById('view-'+eagerView);
-    if(vEl)vEl.classList.add('active');
-    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-    const nEl=document.getElementById('nav-'+eagerView);
-    if(nEl)nEl.classList.add('active');
-    // Then load data and route properly (writes correct hash)
-    initApp().then(()=>navigateFromHash());
-  } else {
-    showScreen('login');
+  try{
+    if(typeof supabase==='undefined'||!db){
+      throw new Error('Supabase SDK failed to load.');
+    }
+    const saved=loadSession();
+    if(saved){
+      session=saved;
+      showScreen('app');
+      // Eagerly switch to correct view skeleton BEFORE data loads
+      // so refresh shows the right skeleton (not always Dashboard)
+      const hash=window.location.hash||'';
+      const match=hash.match(/^#\/(.+)$/);
+      const eagerView=match&&VALID_VIEWS.includes(match[1])?match[1]:'dashboard';
+      document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+      const vEl=document.getElementById('view-'+eagerView);
+      if(vEl)vEl.classList.add('active');
+      document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+      const nEl=document.getElementById('nav-'+eagerView);
+      if(nEl)nEl.classList.add('active');
+      // Then load data and route properly (writes correct hash)
+      initApp()
+        .then(()=>navigateFromHash())
+        .catch(err=>handleInitError(err));
+    } else {
+      showScreen('login');
+    }
+  }catch(e){
+    handleInitError(e);
   }
 })();
+
+function handleInitError(err){
+  console.error('CRM Initialization failed:',err);
+  const overlay=document.getElementById('error-overlay');
+  if(overlay)overlay.style.display='flex';
+  else alert('Database connection failed. Please refresh the page to try again.');
+}
 
 let resizeTimeout;
 window.addEventListener('resize', () => {
