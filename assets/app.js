@@ -1306,34 +1306,34 @@ function loadDashboard(){
       </div>
       
       <div class="stats-row-secondary">
-        <div class="stat-card fade-in-el">
+        <div class="stat-card stat-card-secondary bg-slate fade-in-el">
           <div class="stat-header">
             <div class="stat-label">Not Called</div>
-            <div class="stat-icon" style="background:var(--bg-surface-2);color:var(--text-secondary)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+            <div class="stat-icon" style="background:var(--bg-surface);color:var(--text-secondary)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
           </div>
           <div class="stat-value">${nc}</div>
           <div class="stat-delta">${total>0?Math.round(nc/total*100):0}% remaining</div>
         </div>
-        <div class="stat-card fade-in-el">
+        <div class="stat-card stat-card-secondary bg-accent fade-in-el">
           <div class="stat-header">
             <div class="stat-label">Voicemail</div>
-            <div class="stat-icon" style="background:var(--accent-subtle);color:var(--accent)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5.5" cy="11.5" r="4.5"/><circle cx="18.5" cy="11.5" r="4.5"/><line x1="5.5" y1="16" x2="18.5" y2="16"/></svg></div>
+            <div class="stat-icon" style="background:var(--bg-surface);color:var(--accent)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5.5" cy="11.5" r="4.5"/><circle cx="18.5" cy="11.5" r="4.5"/><line x1="5.5" y1="16" x2="18.5" y2="16"/></svg></div>
           </div>
           <div class="stat-value c-accent">${voicemail}</div>
           <div class="stat-delta">${total>0?Math.round(voicemail/total*100):0}% left message</div>
         </div>
-        <div class="stat-card fade-in-el">
+        <div class="stat-card stat-card-secondary bg-orange fade-in-el">
           <div class="stat-header">
             <div class="stat-label">Not Respond</div>
-            <div class="stat-icon" style="background:var(--orange-subtle);color:var(--orange)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg></div>
+            <div class="stat-icon" style="background:var(--bg-surface);color:var(--orange)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg></div>
           </div>
           <div class="stat-value c-orange">${notRespond}</div>
           <div class="stat-delta">${total>0?Math.round(notRespond/total*100):0}% no response</div>
         </div>
-        <div class="stat-card fade-in-el">
+        <div class="stat-card stat-card-secondary bg-yellow fade-in-el">
           <div class="stat-header">
             <div class="stat-label">Follow Up</div>
-            <div class="stat-icon" style="background:var(--yellow-subtle);color:var(--yellow)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg></div>
+            <div class="stat-icon" style="background:var(--bg-surface);color:var(--yellow)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg></div>
           </div>
           <div class="stat-value c-yellow">${fu}</div>
           <div class="stat-delta">Needs callback</div>
@@ -1372,15 +1372,33 @@ function loadDashboard(){
       const campaignLabel=campaign?`<span class="activity-campaign-tag">${esc(campaign.name)}</span>`:'';
       const callerName=s.callers?.name||'Unknown';
       const statusMeta={
-        called:{label:'called',color:'var(--green)'},
-        voicemail:{label:'left voicemail for',color:'var(--accent)'},
-        not_respond:{label:'marked not responding for',color:'var(--orange)'},
-        follow_up:{label:'marked follow-up on',color:'var(--yellow)'},
-        interested:{label:'marked interested in',color:'var(--purple)'},
-        onboard:{label:'onboarded',color:'var(--teal)'}
+        called:{label:'called',color:'var(--green)',bg:'var(--green-subtle)',icon:'📞'},
+        voicemail:{label:'left a voicemail for',color:'var(--accent)',bg:'var(--accent-subtle)',icon:'📼'},
+        not_respond:{label:'marked no response for',color:'var(--orange)',bg:'var(--orange-subtle)',icon:'🚫'},
+        follow_up:{label:'scheduled follow-up for',color:'var(--yellow)',bg:'var(--yellow-subtle)',icon:'⏰'},
+        interested:{label:'marked interested in',color:'var(--purple)',bg:'var(--purple-subtle)',icon:'⭐'},
+        onboard:{label:'onboarded',color:'var(--teal)',bg:'var(--teal-subtle)',icon:'🚀'}
       };
-      const meta=statusMeta[s.status]||{label:'updated',color:'var(--accent)'};
-      return`<div class="activity-item fade-in-el"><div class="activity-dot" style="background:${meta.color}"></div><div class="activity-text"><strong>${esc(callerName)}</strong> ${meta.label} <strong>${esc(lead.name)}</strong>${campaignLabel}</div><div class="activity-time" title="${formatDateTime(s.updated_at)}">${formatDate(s.updated_at)} · ${formatTimeAgo(s.updated_at)}</div></div>`;
+      const meta=statusMeta[s.status]||{label:'updated',color:'var(--accent)',bg:'var(--accent-subtle)',icon:'✓'};
+      
+      return `
+        <div class="activity-item fade-in-el">
+          <div class="activity-icon-wrap" style="background:${meta.bg};color:${meta.color}">${meta.icon}</div>
+          <div class="activity-content">
+            <div class="activity-header">
+              <div>
+                <span class="activity-caller">${esc(callerName)}</span>
+                <span class="activity-action">${meta.label}</span>
+              </div>
+              <div class="activity-time" title="${formatDateTime(s.updated_at)}">${formatTimeAgo(s.updated_at)}</div>
+            </div>
+            <div class="activity-target">
+              ${esc(lead.name)}
+              ${campaignLabel}
+            </div>
+          </div>
+        </div>
+      `;
     }).join('');
   }
   renderDashPagination('activity-pagination',activityPage,actTotalPages,(p)=>{activityPage=p;loadDashboard();});

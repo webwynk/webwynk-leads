@@ -211,10 +211,19 @@ a{text-decoration:none}
 .stat-delta { font-size: 12px; color: var(--text-muted); font-weight: 500; display: flex; align-items: center; gap: 6px; margin-top: auto; }
 
 /* Subdued gradient backgrounds */
-.stat-card-primary.bg-accent { background: linear-gradient(135deg, var(--bg-surface), var(--accent-subtle)); }
-.stat-card-primary.bg-green { background: linear-gradient(135deg, var(--bg-surface), var(--green-subtle)); }
-.stat-card-primary.bg-purple { background: linear-gradient(135deg, var(--bg-surface), var(--purple-subtle)); }
-.stat-card-primary.bg-teal { background: linear-gradient(135deg, var(--bg-surface), var(--teal-subtle)); }
+.stat-card.bg-accent { background: linear-gradient(135deg, var(--bg-surface), var(--accent-subtle)); }
+.stat-card.bg-green { background: linear-gradient(135deg, var(--bg-surface), var(--green-subtle)); }
+.stat-card.bg-purple { background: linear-gradient(135deg, var(--bg-surface), var(--purple-subtle)); }
+.stat-card.bg-teal { background: linear-gradient(135deg, var(--bg-surface), var(--teal-subtle)); }
+.stat-card.bg-orange { background: linear-gradient(135deg, var(--bg-surface), var(--orange-subtle)); }
+.stat-card.bg-yellow { background: linear-gradient(135deg, var(--bg-surface), var(--yellow-subtle)); }
+.stat-card.bg-slate { background: linear-gradient(135deg, var(--bg-surface), var(--bg-surface-2)); }
+
+/* Secondary Cards Adjustments */
+.stat-card-secondary { padding: 14px 18px; gap: 8px; }
+.stat-card-secondary .stat-value { font-size: 24px; }
+.stat-card-secondary .stat-icon { width: 32px; height: 32px; font-size: 16px; border-radius: var(--radius-sm); }
+.stat-card-secondary .stat-label { font-size: 12px; }
 
 /* Caller Progress Mini-Grid */
 .cp-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 12px; }
@@ -396,9 +405,20 @@ tbody tr:hover td{background:var(--bg-surface-2)}
 .caller-row-name{display:flex;align-items:center;gap:8px}
 .caller-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0}
 
-/* ═══════ ACTIVITY & EMPTY ═══════ */
+/* ═══════ RECENT ACTIVITY ═══════ */
+.activity-item { display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px; border-bottom: 1px solid var(--border-light); transition: background 0.2s; border-radius: var(--radius-md); }
+.activity-item:hover { background: var(--bg-surface-2); }
+.activity-item:last-child { border-bottom: none; }
+.activity-icon-wrap { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; box-shadow: var(--shadow-xs); }
+.activity-content { flex: 1; min-width: 0; }
+.activity-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.activity-caller { font-size: 13.5px; font-weight: 700; color: var(--text-primary); }
+.activity-action { font-size: 13px; color: var(--text-secondary); margin-left: 4px; }
+.activity-time { font-size: 11.5px; font-weight: 500; color: var(--text-muted); white-space: nowrap; margin-left: 12px; }
+.activity-target { font-size: 13.5px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.activity-campaign-tag { background: var(--bg-surface); border: 1px solid var(--border); padding: 3px 8px; border-radius: 12px; font-size: 10.5px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; box-shadow: var(--shadow-xs); }
+
 .activity-list{display:flex;flex-direction:column;gap:2px}
-.activity-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius-sm);transition:background 150ms}.activity-item:hover{background:var(--bg-surface-2)}
 .activity-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .activity-text{font-size:12.5px;color:var(--text-secondary);flex:1;line-height:1.4}.activity-text strong{color:var(--text-primary);font-weight:600}
 .activity-time{font-size:11px;color:var(--text-dim);white-space:nowrap;flex-shrink:0}
