@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link rel="stylesheet" href="assets/style.css?v=15"/>
+  <link rel="stylesheet" href="assets/style.css?v=17"/>
 </head>
 <body>
 
@@ -137,13 +137,19 @@
           </div>
         </div>
         <div class="view-body">
-          <div class="stats-grid" id="stats-grid">
-            <div class="stat-card"><div class="stat-label"><div class="skeleton skel-text" style="width:70px"></div></div><div class="skeleton skel-title" style="width:50px;margin-top:8px"></div></div>
-            <div class="stat-card"><div class="stat-label"><div class="skeleton skel-text" style="width:70px"></div></div><div class="skeleton skel-title" style="width:50px;margin-top:8px"></div></div>
-            <div class="stat-card"><div class="stat-label"><div class="skeleton skel-text" style="width:70px"></div></div><div class="skeleton skel-title" style="width:50px;margin-top:8px"></div></div>
-            <div class="stat-card"><div class="stat-label"><div class="skeleton skel-text" style="width:70px"></div></div><div class="skeleton skel-title" style="width:50px;margin-top:8px"></div></div>
-            <div class="stat-card"><div class="stat-label"><div class="skeleton skel-text" style="width:70px"></div></div><div class="skeleton skel-title" style="width:50px;margin-top:8px"></div></div>
-            <div class="stat-card"><div class="stat-label"><div class="skeleton skel-text" style="width:70px"></div></div><div class="skeleton skel-title" style="width:50px;margin-top:8px"></div></div>
+          <div class="stats-wrapper" id="stats-grid">
+            <div class="stats-row-primary">
+              <div class="stat-card stat-card-primary"><div class="stat-label"><div class="skeleton skel-text" style="width:70px"></div></div><div class="skeleton skel-title" style="width:50px;margin-top:8px"></div></div>
+              <div class="stat-card stat-card-primary"><div class="stat-label"><div class="skeleton skel-text" style="width:70px"></div></div><div class="skeleton skel-title" style="width:50px;margin-top:8px"></div></div>
+              <div class="stat-card stat-card-primary"><div class="stat-label"><div class="skeleton skel-text" style="width:70px"></div></div><div class="skeleton skel-title" style="width:50px;margin-top:8px"></div></div>
+              <div class="stat-card stat-card-primary"><div class="stat-label"><div class="skeleton skel-text" style="width:70px"></div></div><div class="skeleton skel-title" style="width:50px;margin-top:8px"></div></div>
+            </div>
+            <div class="stats-row-secondary">
+              <div class="stat-card"><div class="stat-label"><div class="skeleton skel-text" style="width:70px"></div></div><div class="skeleton skel-title" style="width:50px;margin-top:8px"></div></div>
+              <div class="stat-card"><div class="stat-label"><div class="skeleton skel-text" style="width:70px"></div></div><div class="skeleton skel-title" style="width:50px;margin-top:8px"></div></div>
+              <div class="stat-card"><div class="stat-label"><div class="skeleton skel-text" style="width:70px"></div></div><div class="skeleton skel-title" style="width:50px;margin-top:8px"></div></div>
+              <div class="stat-card"><div class="stat-label"><div class="skeleton skel-text" style="width:70px"></div></div><div class="skeleton skel-title" style="width:50px;margin-top:8px"></div></div>
+            </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 320px;gap:14px" class="dash-grid">
             <div class="table-wrapper" style="min-height:200px">
@@ -618,6 +624,6 @@
   </div>
 </div>
 
-<script src="assets/app.js?v=16"></script>
+<script src="assets/app.js?v=17"></script>
 </body>
 </html>

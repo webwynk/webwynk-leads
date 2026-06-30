@@ -1269,14 +1269,77 @@ function loadDashboard(){
   const nc=total-called-voicemail-notRespond-fu-interested-onboard;
 
   document.getElementById('stats-grid').innerHTML=`
-    <div class="stat-card fade-in-el"><div class="stat-label">Total Leads</div><div class="stat-value c-accent">${total}</div><div class="stat-delta">${campaignFilter==='all'?allCampaigns.length:1} campaign${campaignFilter==='all'&&allCampaigns.length!==1?'s':''}</div></div>
-    <div class="stat-card fade-in-el"><div class="stat-label">Not Called</div><div class="stat-value">${nc}</div><div class="stat-delta">${total>0?Math.round(nc/total*100):0}% remaining</div></div>
-    <div class="stat-card fade-in-el"><div class="stat-label">Called</div><div class="stat-value c-green">${called}</div><div class="stat-delta">${total>0?Math.round(called/total*100):0}% complete</div></div>
-    <div class="stat-card fade-in-el"><div class="stat-label">Voicemail</div><div class="stat-value c-accent">${voicemail}</div><div class="stat-delta">${total>0?Math.round(voicemail/total*100):0}% left message</div></div>
-    <div class="stat-card fade-in-el"><div class="stat-label">Not Respond</div><div class="stat-value c-orange">${notRespond}</div><div class="stat-delta">${total>0?Math.round(notRespond/total*100):0}% no response</div></div>
-    <div class="stat-card fade-in-el"><div class="stat-label">Follow Up</div><div class="stat-value c-yellow">${fu}</div><div class="stat-delta">Needs callback</div></div>
-    <div class="stat-card fade-in-el"><div class="stat-label">⭐ Interested</div><div class="stat-value c-purple">${interested}</div><div class="stat-delta">${total>0?Math.round(interested/total*100):0}% warm leads</div></div>
-    <div class="stat-card fade-in-el"><div class="stat-label">🚀 Onboard</div><div class="stat-value c-teal">${onboard}</div><div class="stat-delta">Converted clients</div></div>
+    <div class="stats-wrapper">
+      <div class="stats-row-primary">
+        <div class="stat-card stat-card-primary bg-accent fade-in-el">
+          <div class="stat-header">
+            <div class="stat-label">Total Leads</div>
+            <div class="stat-icon" style="background:var(--bg-surface);color:var(--accent)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          </div>
+          <div class="stat-value c-accent">${total}</div>
+          <div class="stat-delta">${campaignFilter==='all'?allCampaigns.length:1} campaign${campaignFilter==='all'&&allCampaigns.length!==1?'s':''}</div>
+        </div>
+        <div class="stat-card stat-card-primary bg-green fade-in-el">
+          <div class="stat-header">
+            <div class="stat-label">Called</div>
+            <div class="stat-icon" style="background:var(--bg-surface);color:var(--green)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
+          </div>
+          <div class="stat-value c-green">${called}</div>
+          <div class="stat-delta">${total>0?Math.round(called/total*100):0}% complete</div>
+        </div>
+        <div class="stat-card stat-card-primary bg-purple fade-in-el">
+          <div class="stat-header">
+            <div class="stat-label">Interested</div>
+            <div class="stat-icon" style="background:var(--bg-surface);color:var(--purple)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+          </div>
+          <div class="stat-value c-purple">${interested}</div>
+          <div class="stat-delta">${total>0?Math.round(interested/total*100):0}% warm leads</div>
+        </div>
+        <div class="stat-card stat-card-primary bg-teal fade-in-el">
+          <div class="stat-header">
+            <div class="stat-label">Onboard</div>
+            <div class="stat-icon" style="background:var(--bg-surface);color:var(--teal)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 3.82-13 1.3 1.3 0 0 1 1.49-.21 1.3 1.3 0 0 1 .68 1.42 22 22 0 0 1-3 14.79z"/><path d="m9 12 3 3a22 22 0 0 0 13-3.82 1.3 1.3 0 0 0 .21-1.49 1.3 1.3 0 0 0-1.42-.68 22 22 0 0 0-14.79 3z"/></svg></div>
+          </div>
+          <div class="stat-value c-teal">${onboard}</div>
+          <div class="stat-delta">Converted clients</div>
+        </div>
+      </div>
+      
+      <div class="stats-row-secondary">
+        <div class="stat-card fade-in-el">
+          <div class="stat-header">
+            <div class="stat-label">Not Called</div>
+            <div class="stat-icon" style="background:var(--bg-surface-2);color:var(--text-secondary)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+          </div>
+          <div class="stat-value">${nc}</div>
+          <div class="stat-delta">${total>0?Math.round(nc/total*100):0}% remaining</div>
+        </div>
+        <div class="stat-card fade-in-el">
+          <div class="stat-header">
+            <div class="stat-label">Voicemail</div>
+            <div class="stat-icon" style="background:var(--accent-subtle);color:var(--accent)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5.5" cy="11.5" r="4.5"/><circle cx="18.5" cy="11.5" r="4.5"/><line x1="5.5" y1="16" x2="18.5" y2="16"/></svg></div>
+          </div>
+          <div class="stat-value c-accent">${voicemail}</div>
+          <div class="stat-delta">${total>0?Math.round(voicemail/total*100):0}% left message</div>
+        </div>
+        <div class="stat-card fade-in-el">
+          <div class="stat-header">
+            <div class="stat-label">Not Respond</div>
+            <div class="stat-icon" style="background:var(--orange-subtle);color:var(--orange)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg></div>
+          </div>
+          <div class="stat-value c-orange">${notRespond}</div>
+          <div class="stat-delta">${total>0?Math.round(notRespond/total*100):0}% no response</div>
+        </div>
+        <div class="stat-card fade-in-el">
+          <div class="stat-header">
+            <div class="stat-label">Follow Up</div>
+            <div class="stat-icon" style="background:var(--yellow-subtle);color:var(--yellow)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg></div>
+          </div>
+          <div class="stat-value c-yellow">${fu}</div>
+          <div class="stat-delta">Needs callback</div>
+        </div>
+      </div>
+    </div>
   `;
 
   // Recent Activity — filtered & paginated
@@ -1389,8 +1452,13 @@ function loadDashboard(){
                 <span class="caller-progress-name">${esc(c.name)}</span>
                 <span class="caller-progress-campaign" title="${esc(activeCampText)}">${esc(activeCampText)}</span>
               </div>
-              <div class="caller-progress-stats">
-                Called: <b style="color:var(--green)">${cc}</b> &nbsp; Voicemail: <b style="color:var(--accent)">${voicemail}</b> &nbsp; Not Respond: <b style="color:var(--orange)">${notRespond}</b> &nbsp; Follow Up: <b style="color:var(--yellow)">${fu}</b> &nbsp; Interested: <b style="color:var(--purple)">${interested}</b> &nbsp; Onboard: <b style="color:var(--teal)">${onboard}</b>
+              <div class="cp-stats-grid">
+                <div class="cp-stat-item" title="Called"><div class="cp-stat-icon" style="color:var(--green)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div><span class="cp-stat-val" style="color:var(--green)">${cc}</span></div>
+                <div class="cp-stat-item" title="Voicemail"><div class="cp-stat-icon" style="color:var(--accent)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5.5" cy="11.5" r="4.5"/><circle cx="18.5" cy="11.5" r="4.5"/><line x1="5.5" y1="16" x2="18.5" y2="16"/></svg></div><span class="cp-stat-val" style="color:var(--accent)">${voicemail}</span></div>
+                <div class="cp-stat-item" title="Not Respond"><div class="cp-stat-icon" style="color:var(--orange)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg></div><span class="cp-stat-val" style="color:var(--orange)">${notRespond}</span></div>
+                <div class="cp-stat-item" title="Follow Up"><div class="cp-stat-icon" style="color:var(--yellow)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg></div><span class="cp-stat-val" style="color:var(--yellow)">${fu}</span></div>
+                <div class="cp-stat-item" title="Interested"><div class="cp-stat-icon" style="color:var(--purple)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><span class="cp-stat-val" style="color:var(--purple)">${interested}</span></div>
+                <div class="cp-stat-item" title="Onboard"><div class="cp-stat-icon" style="color:var(--teal)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 3.82-13 1.3 1.3 0 0 1 1.49-.21 1.3 1.3 0 0 1 .68 1.42 22 22 0 0 1-3 14.79z"/><path d="m9 12 3 3a22 22 0 0 0 13-3.82 1.3 1.3 0 0 0 .21-1.49 1.3 1.3 0 0 0-1.42-.68 22 22 0 0 0-14.79 3z"/></svg></div><span class="cp-stat-val" style="color:var(--teal)">${onboard}</span></div>
               </div>
               <div class="caller-progress-meta">
                 Period: <strong>${datePeriodLabel}</strong>
